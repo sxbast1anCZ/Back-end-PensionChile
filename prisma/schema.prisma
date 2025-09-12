@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../generated/prisma" // Usar ubicación estándar
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Tabla principal de usuarios
+model Usuario {
+  idUsuario          Int      @id @default(autoincrement())
+  rut                String   @unique @db.VarChar(12) // RUT chileno formato XX.XXX.XXX-X
+  nombreUsuario      String   @db.VarChar(100)
+  primerApellido     String   @db.VarChar(100)
+  segundoApellido    String?  @db.VarChar(100) // Opcional en caso de que no todos tengan segundo apellido
+  telefono           String   @db.VarChar(9)   // Exactamente 9 caracteres
+  correoElectronico  String   @unique @db.VarChar(255)
+  contrasena         String   @db.VarChar(255) // Para hash de contraseña
+  tipoUsuario        Int      // Referencia a tabla tipos_usuario
+  estadoUsuario      Int      // Referencia a tabla estados_usuario
+  fechaCreacion      DateTime @default(now())
+  fechaActualizacion DateTime @updatedAt
+  
+  // Relaciones
+  tipoUsuarioRel     TipoUsuario   @relation(fields: [tipoUsuario], references: [id])
+  estadoUsuarioRel   EstadoUsuario @relation(fields: [estadoUsuario], references: [id])
+  universitario      Universitario?
+  propietario        Propietario?
+  
+  @@map("usuarios")
+}
+
+// Tabla de tipos de usuario (seeder)
+model TipoUsuario {
+  id          Int       @id @default(autoincrement())
+  nombre      String    @unique @db.VarChar(50)
+  descripcion String?   @db.VarChar(255)
+  activo      Boolean   @default(true)
+  
+  // Relaciones
+  usuarios    Usuario[]
+  
+  @@map("tipos_usuario")
+}
+
+// Tabla de estados de usuario (seeder)
+model EstadoUsuario {
+  id          Int       @id @default(autoincrement())
+  nombre      String    @unique @db.VarChar(50)
+  descripcion String?   @db.VarChar(255)
+  activo      Boolean   @default(true)
+  
+  // Relaciones
+  usuarios    Usuario[]
+  
+  @@map("estados_usuario")
+}
+
+// Tabla específica para universitarios
+model Universitario {
+  id                 Int     @id @default(autoincrement())
+  idUsuario          Int     @unique
+  ciudad             String  @db.VarChar(100)
+  region             String  @db.VarChar(100)
+  universidadEstudio String  @db.VarChar(255)
+  
+  // Relaciones
+  usuario            Usuario @relation(fields: [idUsuario], references: [idUsuario], onDelete: Cascade)
+  
+  @@map("universitarios")
+}
+
+// Tabla específica para propietarios
+model Propietario {
+  id                    Int     @id @default(autoincrement())
+  idUsuario             Int     @unique
+  biografiaUsuario      String? @db.Text
+  cantidadPublicaciones Int     @default(0)
+  
+  // Relaciones
+  usuario               Usuario @relation(fields: [idUsuario], references: [idUsuario], onDelete: Cascade)
+  
+  @@map("propietarios")
+}
