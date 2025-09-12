@@ -17,14 +17,15 @@ datasource db {
 // Tabla principal de usuarios
 model Usuario {
   idUsuario          Int      @id @default(autoincrement())
+  rut                String   @unique @db.VarChar(12) // RUT chileno formato XX.XXX.XXX-X
   nombreUsuario      String   @db.VarChar(100)
   primerApellido     String   @db.VarChar(100)
   segundoApellido    String?  @db.VarChar(100) // Opcional en caso de que no todos tengan segundo apellido
   telefono           String   @db.VarChar(9)   // Exactamente 9 caracteres
   correoElectronico  String   @unique @db.VarChar(255)
   contrasena         String   @db.VarChar(255) // Para hash de contraseña
-  tipoUsuario        Int      // 1 = Universitario, 2 = Propietario
-  estadoUsuario      Int      // Estados como activo, inactivo, etc.
+  tipoUsuario        Int      // Referencia a tabla tipos_usuario
+  estadoUsuario      Int      // Referencia a tabla estados_usuario
   fechaCreacion      DateTime @default(now())
   fechaActualizacion DateTime @updatedAt
   
