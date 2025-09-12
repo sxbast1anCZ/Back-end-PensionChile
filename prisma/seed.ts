@@ -29,6 +29,17 @@ async function main() {
     },
   });
 
+  await prisma.tipoUsuario.upsert({
+    where: { id: 3 },
+    update: {},
+    create: {
+      id: 3,
+      nombre: 'Administrador',
+      descripcion: 'Usuario con control total del sistema. Gestiona usuarios, publicaciones de alojamientos y configuraciones avanzadas. Puede aprobar, modificar o eliminar contenidos para asegurar el correcto funcionamiento de la plataforma',
+      activo: true,
+    },
+  });
+
   // Seeder para estados de usuario
   console.log('📝 Creando estados de usuario...');
   await prisma.estadoUsuario.upsert({

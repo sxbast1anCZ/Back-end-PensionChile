@@ -53,4 +53,15 @@ export class AuthController {
       user: req.user,
     };
   }
+
+  // Endpoints para catálogos
+  @Get('tipos-usuario')
+  async getTiposUsuario() {
+    return this.authService.getTiposUsuario();
+  }
+
+  @Get('estados-usuario')
+  async getEstadosUsuario() {
+    return this.authService.getEstadosUsuario();
+  }
 }

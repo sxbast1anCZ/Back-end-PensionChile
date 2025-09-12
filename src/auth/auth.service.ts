@@ -130,4 +130,34 @@ export class AuthService {
     const { contrasena, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
+
+  /**
+   * Obtiene los tipos de usuario activos para formularios
+   */
+  async getTiposUsuario() {
+    return this.prisma.tipoUsuario.findMany({
+      where: { activo: true },
+      select: {
+        id: true,
+        nombre: true,
+        descripcion: true,
+      },
+      orderBy: { nombre: 'asc' }
+    });
+  }
+
+  /**
+   * Obtiene los estados de usuario activos para formularios
+   */
+  async getEstadosUsuario() {
+    return this.prisma.estadoUsuario.findMany({
+      where: { activo: true },
+      select: {
+        id: true,
+        nombre: true,
+        descripcion: true,
+      },
+      orderBy: { nombre: 'asc' }
+    });
+  }
 }
