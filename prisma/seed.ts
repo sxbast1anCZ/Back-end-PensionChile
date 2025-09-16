@@ -1,4 +1,4 @@
-import { PrismaClient } from '../generated/prisma';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -82,6 +82,87 @@ async function main() {
       id: 4,
       nombre: 'Pendiente',
       descripcion: 'Usuario pendiente de verificación',
+      activo: true,
+    },
+  });
+
+  // Seeder para tipos de vivienda
+  console.log('🏠 Creando tipos de vivienda...');
+  await prisma.tipoVivienda.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
+      nombre: 'Habitación',
+      descripcion: 'Habitación individual en casa compartida',
+      activo: true,
+    },
+  });
+
+  await prisma.tipoVivienda.upsert({
+    where: { id: 2 },
+    update: {},
+    create: {
+      id: 2,
+      nombre: 'Departamento monoambiente',
+      descripcion: 'Departamento de un solo ambiente',
+      activo: true,
+    },
+  });
+
+  await prisma.tipoVivienda.upsert({
+    where: { id: 3 },
+    update: {},
+    create: {
+      id: 3,
+      nombre: 'Departamento',
+      descripcion: 'Departamento completo con múltiples habitaciones',
+      activo: true,
+    },
+  });
+
+  // Seeder para sexos permitidos
+  console.log('👥 Creando opciones de sexos permitidos...');
+  await prisma.sexosPermitidos.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
+      nombre: 'Masculino',
+      descripcion: 'Solo hombres',
+      activo: true,
+    },
+  });
+
+  await prisma.sexosPermitidos.upsert({
+    where: { id: 2 },
+    update: {},
+    create: {
+      id: 2,
+      nombre: 'Femenino',
+      descripcion: 'Solo mujeres',
+      activo: true,
+    },
+  });
+
+  await prisma.sexosPermitidos.upsert({
+    where: { id: 3 },
+    update: {},
+    create: {
+      id: 3,
+      nombre: 'Mixto',
+      descripcion: 'Hombres y mujeres',
+      activo: true,
+    },
+  });
+
+  await prisma.sexosPermitidos.upsert({
+    where: { id: 4 },
+    update: {},
+    create: {
+      id: 4,
+      nombre: 'Sin preferencia',
+      descripcion: 'No hay restricción por género',
       activo: true,
     },
   });

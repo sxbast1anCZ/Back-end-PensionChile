@@ -34,6 +34,7 @@ model Usuario {
   estadoUsuarioRel   EstadoUsuario @relation(fields: [estadoUsuario], references: [id])
   universitario      Universitario?
   propietario        Propietario?
+  publicaciones      Publicacion[] // Nueva relación para publicaciones
   
   @@map("usuarios")
 }
@@ -89,4 +90,84 @@ model Propietario {
   usuario               Usuario @relation(fields: [idUsuario], references: [idUsuario], onDelete: Cascade)
   
   @@map("propietarios")
+}
+
+// ===== NUEVAS TABLAS PARA PUBLICACIONES =====
+
+// Tabla principal de publicaciones
+model Publicacion {
+  id                   Int                    @id @default(autoincrement())
+  propietarioId        Int                    // FK al usuario propietario
+  titulo               String                 @db.VarChar(255)
+  descripcion          String?                @db.Text
+  precioMensual        Decimal                @db.Decimal(10,2) // Permite precios hasta 99,999,999.99
+  
+  // Características booleanas (nullable como solicitaste)
+  tieneBañoPropio      Boolean?
+  tieneCocinaPropia    Boolean?
+  tieneLavanderia      Boolean?
+  tieneAccesibilidad   Boolean?
+  
+  // Referencias a tablas de catálogos
+  tipoVivienda         Int                    // FK a tipos_vivienda
+  sexosPermitidos      Int?                   // FK a sexos_permitidos (nullable para departamentos)
+  
+  // Premium y soft delete
+  esPremium            Boolean                @default(false)
+  estadoPublicacion    Int                    @default(1) // 1: Activo, 2: Eliminado (soft delete)
+  
+  // Fechas
+  fechaCreacion        DateTime               @default(now())
+  fechaActualizacion   DateTime               @updatedAt
+  fechaExpiracion      DateTime?              // Para publicaciones premium con duración
+  
+  // Relaciones
+  propietario          Usuario                @relation(fields: [propietarioId], references: [idUsuario], onDelete: Cascade)
+  tipoViviendaRel      TipoVivienda          @relation(fields: [tipoVivienda], references: [id])
+  sexosPermitidosRel   SexosPermitidos?      @relation(fields: [sexosPermitidos], references: [id])
+  fotos                FotoPublicacion[]
+  
+  @@map("publicaciones")
+}
+
+// Tabla para almacenar múltiples fotos por publicación
+model FotoPublicacion {
+  id            Int         @id @default(autoincrement())
+  publicacionId Int
+  urlSupabase   String      @db.VarChar(500) // URL de Supabase Storage
+  nombreArchivo String      @db.VarChar(255)
+  esPortada     Boolean     @default(false)  // Una foto principal por publicación
+  orden         Int         @default(0)      // Para ordenar las fotos
+  fechaSubida   DateTime    @default(now())
+  
+  // Relaciones
+  publicacion   Publicacion @relation(fields: [publicacionId], references: [id], onDelete: Cascade)
+  
+  @@map("fotos_publicaciones")
+}
+
+// Tabla de tipos de vivienda (seeder)
+model TipoVivienda {
+  id            Int           @id @default(autoincrement())
+  nombre        String        @unique @db.VarChar(50)
+  descripcion   String?       @db.VarChar(255)
+  activo        Boolean       @default(true)
+  
+  // Relaciones
+  publicaciones Publicacion[]
+  
+  @@map("tipos_vivienda")
+}
+
+// Tabla de sexos permitidos (seeder)
+model SexosPermitidos {
+  id            Int           @id @default(autoincrement())
+  nombre        String        @unique @db.VarChar(50) // "Masculino", "Femenino", "Mixto", "Sin preferencia"
+  descripcion   String?       @db.VarChar(255)
+  activo        Boolean       @default(true)
+  
+  // Relaciones
+  publicaciones Publicacion[]
+  
+  @@map("sexos_permitidos")
 }

@@ -7,11 +7,11 @@ export class CreateUserDto {
   rut: string;
 
   @IsString()
-  @MinLength(2, { message: 'Nombre debe tener al menos 2 caracteres' })
+  @MinLength(2, { message: 'El nombre debe tener al menos 2 caracteres' })
   nombreUsuario: string;
 
   @IsString()
-  @MinLength(2, { message: 'Primer apellido debe tener al menos 2 caracteres' })
+  @MinLength(2, { message: 'El primer apellido debe tener al menos 2 caracteres' })
   primerApellido: string;
 
   @IsOptional()
@@ -19,7 +19,7 @@ export class CreateUserDto {
   segundoApellido?: string;
 
   @IsString()
-  @Length(9, 9, { message: 'Su teléfono debe tener exactamente 9 carácteres. EJ: 912345678' })
+  @Length(9, 9, { message: 'Su teléfono debe tener exactamente 9 caracteres. EJ: 912345678' })
   @Matches(/^[0-9]{9}$/, { message: 'Su teléfono debe contener solo números' })
   telefono: string;
 
