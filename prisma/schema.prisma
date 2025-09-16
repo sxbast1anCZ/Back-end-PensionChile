@@ -35,6 +35,7 @@ model Usuario {
   universitario      Universitario?
   propietario        Propietario?
   publicaciones      Publicacion[] // Nueva relación para publicaciones
+  resenas            Resena[]      // Nueva relación para reseñas escritas por el usuario
   
   @@map("usuarios")
 }
@@ -126,6 +127,7 @@ model Publicacion {
   tipoViviendaRel      TipoVivienda          @relation(fields: [tipoVivienda], references: [id])
   sexosPermitidosRel   SexosPermitidos?      @relation(fields: [sexosPermitidos], references: [id])
   fotos                FotoPublicacion[]
+  resenas              Resena[]               // Nueva relación para reseñas
   
   @@map("publicaciones")
 }
@@ -170,4 +172,23 @@ model SexosPermitidos {
   publicaciones Publicacion[]
   
   @@map("sexos_permitidos")
+}
+
+// Tabla de reseñas para publicaciones
+model Resena {
+  id            Int         @id @default(autoincrement())
+  publicacionId Int         // FK a la publicación reseñada
+  usuarioId     Int         // FK al usuario que escribió la reseña
+  textoResena   String      @db.Text // Comentario de la reseña
+  calificacion  Int         // Calificación del 1 al 10
+  fechaCreacion DateTime    @default(now())
+  fechaActualizacion DateTime @updatedAt
+  
+  // Relaciones
+  publicacion   Publicacion @relation(fields: [publicacionId], references: [id], onDelete: Cascade)
+  usuario       Usuario     @relation(fields: [usuarioId], references: [idUsuario], onDelete: Cascade)
+  
+  // Constraints
+  @@unique([publicacionId, usuarioId]) // Un usuario solo puede reseñar una vez por publicación
+  @@map("resenas")
 }
