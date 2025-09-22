@@ -16,6 +16,7 @@ import {
   ApiUnauthorizedResponse,
   ApiBadRequestResponse 
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -28,6 +29,7 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('login')
+  @Throttle({ auth: { ttl: 900000, limit: 5 } }) // 5 intentos por 15 minutos
   @UseGuards(LocalAuthGuard)
   @ApiOperation({ 
     summary: 'Iniciar sesión',
@@ -56,6 +58,7 @@ export class AuthController {
   }
 
   @Post('register')
+  @Throttle({ auth: { ttl: 900000, limit: 5 } }) // 5 intentos por 15 minutos
   @ApiOperation({ 
     summary: 'Registrar nuevo usuario',
     description: 'Crea una cuenta nueva para universitario o propietario'

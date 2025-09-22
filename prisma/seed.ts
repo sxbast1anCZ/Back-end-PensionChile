@@ -419,6 +419,52 @@ async function main() {
     });
   }
 
+  // Seeder para planes premium
+  console.log('Creando planes premium...');
+  const planesPremiumData = [
+    {
+      id: 1,
+      nombre: 'Premium 7 días',
+      descripcion: 'Tu publicación destacada por 1 semana. Ideal para probar los beneficios premium.',
+      precio: 5000, // $5.000 CLP
+      duracionDias: 7,
+      destacarPublicacion: true,
+      aparecerPrimero: true,
+      insigniaEspecial: false,
+      multiplicadorVisitas: 2,
+    },
+    {
+      id: 2,
+      nombre: 'Premium 30 días',
+      descripcion: 'Destaca tu propiedad por un mes completo. La opción más popular para maximizar visibilidad.',
+      precio: 15000, // $15.000 CLP
+      duracionDias: 30,
+      destacarPublicacion: true,
+      aparecerPrimero: true,
+      insigniaEspecial: true,
+      multiplicadorVisitas: 3,
+    },
+    {
+      id: 3,
+      nombre: 'Premium 90 días',
+      descripcion: 'Máxima exposición por 3 meses. Perfecto para propiedades de larga duración.',
+      precio: 35000, // $35.000 CLP (descuento por volumen)
+      duracionDias: 90,
+      destacarPublicacion: true,
+      aparecerPrimero: true,
+      insigniaEspecial: true,
+      multiplicadorVisitas: 4,
+    },
+  ];
+
+  for (const plan of planesPremiumData) {
+    await prisma.planPremium.upsert({
+      where: { id: plan.id },
+      update: {},
+      create: plan,
+    });
+  }
+
   console.log('Seeding completado exitosamente!');
 }
 

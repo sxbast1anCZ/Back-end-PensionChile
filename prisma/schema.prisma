@@ -36,6 +36,7 @@ model Usuario {
   propietario        Propietario?
   publicaciones      Publicacion[] // Nueva relación para publicaciones
   resenas            Resena[]      // Nueva relación para reseñas escritas por el usuario
+  ordenesPago        OrdenPago[]   // Nueva relación para órdenes de pago del usuario
   
   @@map("usuarios")
 }
@@ -132,6 +133,7 @@ model Publicacion {
   ubicacion            Ubicacion             @relation(fields: [ubicacionId], references: [id])
   fotos                FotoPublicacion[]
   resenas              Resena[]               // Nueva relación para reseñas
+  ordenesPago          OrdenPago[]            // Nueva relación para órdenes de pago de esta publicación
   
   @@map("publicaciones")
 }
@@ -290,4 +292,103 @@ model ListadoUniversidades {
   
   @@unique([nombreUniversidad, ubicacionId]) // Una universidad por ubicación específica
   @@map("listado_universidades")
+}
+
+// SISTEMA DE PAGOS Y PREMIUM
+
+// Estados posibles del pago
+enum EstadoPago {
+  PENDIENTE          // Orden creada, esperando pago
+  PAGADO             // Pago confirmado por Transbank
+  FALLIDO            // Pago rechazado
+  CANCELADO          // Usuario canceló
+  EXPIRADO           // Orden expiró sin pago
+  REEMBOLSADO        // Dinero devuelto
+}
+
+// Métodos de pago disponibles
+enum MetodoPago {
+  TARJETA_CREDITO
+  TARJETA_DEBITO
+  TRANSFERENCIA
+  WEBPAY
+  TRANSBANK
+}
+
+// Catálogo de planes premium disponibles
+model PlanPremium {
+  id                    Int           @id @default(autoincrement())
+  nombre                String        @db.VarChar(100) // "Premium 7 días"
+  descripcion           String?       @db.Text
+  precio                Decimal       @db.Decimal(10,2)
+  duracionDias          Int           // 7, 30, 90 días
+  activo                Boolean       @default(true)
+  
+  // Beneficios del plan
+  destacarPublicacion   Boolean       @default(true)
+  aparecerPrimero       Boolean       @default(true)
+  insigniaEspecial      Boolean       @default(false)
+  multiplicadorVisitas  Int           @default(1) // Factor de boost en algoritmo
+  
+  // Auditoría
+  fechaCreacion         DateTime      @default(now())
+  fechaActualizacion    DateTime      @updatedAt
+  
+  // Relaciones
+  ordenes               OrdenPago[]
+  
+  @@map("planes_premium")
+}
+
+// Tabla para registrar órdenes de pago
+model OrdenPago {
+  id                    Int                @id @default(autoincrement())
+  usuarioId             Int                // FK al usuario que paga (debe ser propietario)
+  publicacionId         Int?               // FK a la publicación que se hace premium
+  planPremiumId         Int                // FK al plan premium seleccionado
+  
+  // Detalles del pago
+  monto                 Decimal            @db.Decimal(10,2)
+  moneda                String             @default("CLP") @db.VarChar(3)
+  concepto              String             @db.VarChar(255) // "Premium 30 días - Publicación ID 123"
+  
+  // IDs de Transbank (no datos sensibles)
+  transactionId         String?            @unique @db.VarChar(100) // ID de Transbank
+  buyOrder              String             @unique @db.VarChar(50)  // Orden única generada por nosotros
+  sessionId             String?            @db.VarChar(100)
+  
+  // Estados del pago
+  estadoPago            EstadoPago         @default(PENDIENTE)
+  metodoPago            MetodoPago?        // Se actualiza cuando Transbank confirma
+  
+  // Datos de respuesta de Transbank (seguros)
+  codigoAutorizacion    String?            @db.VarChar(50)
+  tipoTarjeta           String?            @db.VarChar(20) // "Visa", "MasterCard" 
+  ultimos4Digitos       String?            @db.VarChar(4)  // Solo últimos 4 dígitos
+  
+  // Datos de auditoría y seguridad
+  ipCliente             String?            @db.VarChar(45) // IPv4/IPv6 del cliente
+  userAgent             String?            @db.VarChar(500) // Para detección de fraude
+  
+  // Fechas
+  fechaCreacion         DateTime           @default(now())
+  fechaPago             DateTime?          // Cuando se completó el pago
+  fechaExpiracion       DateTime?          // Vencimiento del premium
+  fechaVencimientoOrden DateTime?          // Vencimiento de la orden de pago (15 min)
+  
+  // Campos de seguridad adicionales
+  intentosFallidos      Int                @default(0) // Contador de intentos fallidos
+  bloqueado             Boolean            @default(false) // Para bloquear órdenes sospechosas
+  
+  // Relaciones
+  usuario               Usuario            @relation(fields: [usuarioId], references: [idUsuario], onDelete: Cascade)
+  publicacion           Publicacion?       @relation(fields: [publicacionId], references: [id])
+  planPremium           PlanPremium        @relation(fields: [planPremiumId], references: [id])
+  
+  // Índices para rendimiento y seguridad
+  @@index([usuarioId, fechaCreacion])
+  @@index([estadoPago, fechaCreacion])
+  @@index([buyOrder])
+  @@index([ipCliente, fechaCreacion]) // Para detectar patrones sospechosos
+  @@map("ordenes_pago")
 }
