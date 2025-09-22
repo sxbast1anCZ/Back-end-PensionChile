@@ -1,0 +1,31 @@
+deiviid@Davids-MacBook-Pro Back-end-PensionChile % npx prisma db seed
+warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., `prisma.config.ts`).
+For more information, see: https://pris.ly/prisma-config
+
+Environment variables loaded from .env
+Running seed command `ts-node prisma/seed.ts` ...
+Iniciando seeding...
+Creando tipos de usuario...
+Creando estados de usuario...
+Creando tipos de vivienda...
+Error durante el seeding: PrismaClientKnownRequestError: 
+Invalid `prisma.tipoVivienda.upsert()` invocation in
+/Users/deiviid/Sites/PensionChile/Back-end-PensionChile/prisma/seed.ts:91:29
+
+  88 
+  89 // Seeder para tipos de vivienda
+  90 console.log('Creando tipos de vivienda...');
+→ 91 await prisma.tipoVivienda.upsert(
+The table `public.tipos_vivienda` does not exist in the current database.
+    at ei.handleRequestError (/Users/deiviid/Sites/PensionChile/Back-end-PensionChile/node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+    at ei.handleAndLogRequestError (/Users/deiviid/Sites/PensionChile/Back-end-PensionChile/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at ei.request (/Users/deiviid/Sites/PensionChile/Back-end-PensionChile/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at async a (/Users/deiviid/Sites/PensionChile/Back-end-PensionChile/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:833:24)
+    at async main (/Users/deiviid/Sites/PensionChile/Back-end-PensionChile/prisma/seed.ts:91:3) {
+  code: 'P2021',
+  meta: { modelName: 'TipoVivienda', table: 'public.tipos_vivienda' },
+  clientVersion: '6.15.0'
+}
+
+An error occurred while running the seed command:
+Error: Command failed with exit code 1: ts-node prisma/seed.ts
