@@ -248,10 +248,10 @@ prisma/
 
 ---
 
-## 👥 Equipo
+## 👥 Developers
 
-- **Sebastian** - Desarrollador Backend
-- **[Nombre del compañero]** - Desarrollador Frontend
+- **Sebastián Cortez Silva** - Desarrollador Backend
+- **David Álvarez Barraza** - Desarrollador Frontend
 
 ---
 
