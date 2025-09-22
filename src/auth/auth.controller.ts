@@ -5,7 +5,7 @@ import {
   Request, 
   Body, 
   Get,
-  UnauthorizedException 
+  BadRequestException
 } from '@nestjs/common';
 import { 
   ApiTags, 
@@ -21,9 +21,11 @@ import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CreateUserDto } from './dto/create-user.dto';
+import { RegisterUniversitarioDto } from './dto/register-universitario.dto';
+import { RegisterPropietarioDto } from './dto/register-propietario.dto';
 import { LoginDto } from './dto/login.dto';
 
-@ApiTags('auth')
+@ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -33,7 +35,7 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @ApiOperation({ 
     summary: 'Iniciar sesión',
-    description: 'Autentica un usuario y devuelve un token JWT'
+    description: 'Autentica un usuario (universitario o propietario) y devuelve un token JWT'
   })
   @ApiBody({ type: LoginDto })
   @ApiResponse({ 
@@ -45,7 +47,9 @@ export class AuthController {
         idUsuario: 1,
         nombreUsuario: 'Juan',
         correoElectronico: 'juan@ejemplo.com',
-        tipoUsuario: 'Universitario'
+        rut: '12345678-9',
+        tipoUsuario: 'Universitario',
+        estadoUsuario: 'Activo'
       }
     }
   })
@@ -57,11 +61,132 @@ export class AuthController {
     return this.authService.login(req.user);
   }
 
+  @Post('register/universitario')
+  @Throttle({ auth: { ttl: 900000, limit: 3 } }) // 3 intentos por 15 minutos
+  @ApiOperation({ 
+    summary: 'Registrar nuevo estudiante universitario',
+    description: 'Crea una cuenta nueva para un estudiante universitario. Requiere validación de universidad en el catálogo.'
+  })
+  @ApiBody({ 
+    type: RegisterUniversitarioDto,
+    description: 'Datos del estudiante universitario',
+    examples: {
+      ejemplo1: {
+        summary: 'Estudiante de Universidad de Chile',
+        value: {
+          rut: '12345678-9',
+          nombreUsuario: 'Juan Carlos',
+          primerApellido: 'Pérez',
+          segundoApellido: 'González',
+          telefono: '912345678',
+          correoElectronico: 'juan.perez@estudiante.uchile.cl',
+          contrasena: 'MiPassword123!',
+          nombreUniversidadEstudiante: 'Universidad de Chile',
+          ciudad: 'Santiago',
+          region: 'Región Metropolitana'
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 201, 
+    description: 'Estudiante universitario registrado exitosamente',
+    example: {
+      message: 'Estudiante universitario registrado exitosamente',
+      user: {
+        idUsuario: 2,
+        rut: '12345678-9',
+        nombreUsuario: 'Juan Carlos',
+        correoElectronico: 'juan.perez@estudiante.uchile.cl',
+        tipoUsuario: 'Universitario',
+        estadoUsuario: 'Activo',
+        universidad: 'Universidad de Chile'
+      }
+    }
+  })
+  @ApiBadRequestResponse({ 
+    description: 'Datos de entrada inválidos o universidad no encontrada',
+    example: { 
+      message: ['RUT chileno inválido', 'No se encontró la universidad en nuestro catálogo'], 
+      statusCode: 400 
+    }
+  })
+  async registerUniversitario(@Body() registerUniversitarioDto: RegisterUniversitarioDto) {
+    try {
+      const user = await this.authService.registerUniversitario(registerUniversitarioDto);
+      return {
+        message: 'Estudiante universitario registrado exitosamente',
+        user,
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  @Post('register/propietario')
+  @Throttle({ auth: { ttl: 900000, limit: 3 } }) // 3 intentos por 15 minutos
+  @ApiOperation({ 
+    summary: 'Registrar nuevo propietario',
+    description: 'Crea una cuenta nueva para un propietario de pensiones/habitaciones.'
+  })
+  @ApiBody({ 
+    type: RegisterPropietarioDto,
+    description: 'Datos del propietario',
+    examples: {
+      ejemplo1: {
+        summary: 'Propietario con biografía',
+        value: {
+          rut: '98765432-1',
+          nombreUsuario: 'María Elena',
+          primerApellido: 'González',
+          segundoApellido: 'Martínez',
+          telefono: '987654321',
+          correoElectronico: 'maria.gonzalez@gmail.com',
+          contrasena: 'MiPassword123!',
+          biografiaUsuario: 'Busco estudiantes responsables y ordenados. Preferiblemente de carreras de ingeniería. Casa ubicada cerca del metro.'
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 201, 
+    description: 'Propietario registrado exitosamente',
+    example: {
+      message: 'Propietario registrado exitosamente',
+      user: {
+        idUsuario: 3,
+        rut: '98765432-1',
+        nombreUsuario: 'María Elena',
+        correoElectronico: 'maria.gonzalez@gmail.com',
+        tipoUsuario: 'Propietario',
+        estadoUsuario: 'Activo'
+      }
+    }
+  })
+  @ApiBadRequestResponse({ 
+    description: 'Datos de entrada inválidos',
+    example: { 
+      message: ['RUT chileno inválido', 'Ya existe un usuario con ese email o RUT'], 
+      statusCode: 400 
+    }
+  })
+  async registerPropietario(@Body() registerPropietarioDto: RegisterPropietarioDto) {
+    try {
+      const user = await this.authService.registerPropietario(registerPropietarioDto);
+      return {
+        message: 'Propietario registrado exitosamente',
+        user,
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
   @Post('register')
   @Throttle({ auth: { ttl: 900000, limit: 5 } }) // 5 intentos por 15 minutos
   @ApiOperation({ 
-    summary: 'Registrar nuevo usuario',
-    description: 'Crea una cuenta nueva para universitario o propietario'
+    summary: 'Registrar nuevo usuario (OBSOLETO)',
+    description: '⚠️ OBSOLETO: Use /register/universitario o /register/propietario. Este endpoint se mantiene solo para compatibilidad.'
   })
   @ApiBody({ type: CreateUserDto })
   @ApiResponse({ 
@@ -85,11 +210,11 @@ export class AuthController {
     try {
       const user = await this.authService.register(createUserDto);
       return {
-        message: 'Usuario creado exitosamente',
+        message: 'Usuario creado exitosamente (usar endpoints específicos)',
         user,
       };
     } catch (error) {
-      throw new UnauthorizedException(error.message);
+      throw new BadRequestException(error.message);
     }
   }
 
@@ -155,6 +280,39 @@ export class AuthController {
   }
 
   // Endpoints para catálogos
+  @Get('universidades')
+  @ApiOperation({ 
+    summary: 'Obtener universidades disponibles',
+    description: 'Lista todas las universidades chilenas disponibles en el catálogo para registro de estudiantes'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Lista de universidades',
+    example: [
+      { 
+        id: 1, 
+        nombreUniversidad: 'Universidad de Chile',
+        ubicacion: {
+          region: { nombre: 'Región Metropolitana' },
+          provincia: { nombre: 'Santiago' },
+          comuna: { nombre: 'Santiago' }
+        }
+      },
+      { 
+        id: 2, 
+        nombreUniversidad: 'Pontificia Universidad Católica de Chile',
+        ubicacion: {
+          region: { nombre: 'Región Metropolitana' },
+          provincia: { nombre: 'Santiago' },
+          comuna: { nombre: 'Santiago' }
+        }
+      }
+    ]
+  })
+  async getUniversidades() {
+    return this.authService.getUniversidades();
+  }
+
   @Get('tipos-usuario')
   @ApiOperation({ 
     summary: 'Obtener tipos de usuario',
