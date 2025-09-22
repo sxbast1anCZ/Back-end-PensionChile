@@ -20,7 +20,6 @@ import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { CreateUserDto } from './dto/create-user.dto';
 import { RegisterUniversitarioDto } from './dto/register-universitario.dto';
 import { RegisterPropietarioDto } from './dto/register-propietario.dto';
 import { LoginDto } from './dto/login.dto';
@@ -175,42 +174,6 @@ export class AuthController {
       const user = await this.authService.registerPropietario(registerPropietarioDto);
       return {
         message: 'Propietario registrado exitosamente',
-        user,
-      };
-    } catch (error) {
-      throw new BadRequestException(error.message);
-    }
-  }
-
-  @Post('register')
-  @Throttle({ auth: { ttl: 900000, limit: 5 } }) // 5 intentos por 15 minutos
-  @ApiOperation({ 
-    summary: 'Registrar nuevo usuario (OBSOLETO)',
-    description: '⚠️ OBSOLETO: Use /register/universitario o /register/propietario. Este endpoint se mantiene solo para compatibilidad.'
-  })
-  @ApiBody({ type: CreateUserDto })
-  @ApiResponse({ 
-    status: 201, 
-    description: 'Usuario creado exitosamente',
-    example: {
-      message: 'Usuario creado exitosamente',
-      user: {
-        idUsuario: 2,
-        nombreUsuario: 'María',
-        correoElectronico: 'maria@ejemplo.com',
-        tipoUsuario: 'Propietario'
-      }
-    }
-  })
-  @ApiBadRequestResponse({ 
-    description: 'Datos de entrada inválidos',
-    example: { message: ['El RUT debe tener formato válido'], statusCode: 400 }
-  })
-  async register(@Body() createUserDto: CreateUserDto) {
-    try {
-      const user = await this.authService.register(createUserDto);
-      return {
-        message: 'Usuario creado exitosamente (usar endpoints específicos)',
         user,
       };
     } catch (error) {

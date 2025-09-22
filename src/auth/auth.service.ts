@@ -291,54 +291,6 @@ export class AuthService {
   }
 
   /**
-   * Crea un nuevo usuario con contraseña hasheada (método legacy mantenido para compatibilidad)
-   */
-  async register(userData: {
-    rut: string;
-    nombreUsuario: string;
-    primerApellido: string;
-    segundoApellido?: string;
-    telefono: string;
-    correoElectronico: string;
-    contrasena: string;
-    tipoUsuario: number;
-  }) {
-    // Verificar que el usuario no exista
-    const existingUser = await this.prisma.usuario.findFirst({
-      where: {
-        OR: [
-          { correoElectronico: userData.correoElectronico },
-          { rut: userData.rut },
-        ],
-      },
-    });
-
-    if (existingUser) {
-      throw new Error('Usuario ya existe con ese email o RUT');
-    }
-
-    // Hashear la contraseña
-    const hashedPassword = await this.hashPassword(userData.contrasena);
-
-    // Crear el usuario
-    const user = await this.prisma.usuario.create({
-      data: {
-        ...userData,
-        contrasena: hashedPassword,
-        estadoUsuario: 1, // Estado "Activo" por defecto
-      },
-      include: {
-        tipoUsuarioRel: true,
-        estadoUsuarioRel: true,
-      },
-    });
-
-    // Excluir la contraseña del resultado
-    const { contrasena, ...userWithoutPassword } = user;
-    return userWithoutPassword;
-  }
-
-  /**
    * Obtiene las universidades disponibles para formularios
    */
   async getUniversidades() {
