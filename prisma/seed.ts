@@ -3,10 +3,10 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Iniciando seeding...');
+  console.log('Iniciando seeding...');
 
   // Seeder para tipos de usuario
-  console.log('📝 Creando tipos de usuario...');
+  console.log('Creando tipos de usuario...');
   await prisma.tipoUsuario.upsert({
     where: { id: 1 },
     update: {},
@@ -41,7 +41,7 @@ async function main() {
   });
 
   // Seeder para estados de usuario
-  console.log('📝 Creando estados de usuario...');
+  console.log('Creando estados de usuario...');
   await prisma.estadoUsuario.upsert({
     where: { id: 1 },
     update: {},
@@ -87,7 +87,7 @@ async function main() {
   });
 
   // Seeder para tipos de vivienda
-  console.log('🏠 Creando tipos de vivienda...');
+  console.log('Creando tipos de vivienda...');
   await prisma.tipoVivienda.upsert({
     where: { id: 1 },
     update: {},
@@ -122,7 +122,7 @@ async function main() {
   });
 
   // Seeder para sexos permitidos
-  console.log('👥 Creando opciones de sexos permitidos...');
+  console.log('Creando opciones de sexos permitidos...');
   await prisma.sexosPermitidos.upsert({
     where: { id: 1 },
     update: {},
@@ -170,7 +170,7 @@ async function main() {
   // ===== SEEDER PARA UBICACIONES DE CHILE =====
   
   // Seeder para regiones
-  console.log('🗺️ Creando regiones de Chile...');
+  console.log('Creando regiones de Chile...');
   const regionesData = [
     { id: 1, codigo: '01', nombre: 'Región de Tarapacá' },
     { id: 2, codigo: '02', nombre: 'Región de Antofagasta' },
@@ -198,7 +198,7 @@ async function main() {
   }
 
   // Seeder para provincias principales (simplificado)
-  console.log('🏛️ Creando provincias principales...');
+  console.log('Creando provincias principales...');
   const provinciasData = [
     // Región Metropolitana (las más importantes)
     { id: 1, regionId: 15, codigo: '131', nombre: 'Santiago' },
@@ -233,7 +233,7 @@ async function main() {
   }
 
   // Seeder para comunas principales
-  console.log('🏘️ Creando comunas principales...');
+  console.log('Creando comunas principales...');
   const comunasData = [
     // Santiago (las más importantes para universitarios)
     { id: 1, provinciaId: 1, regionId: 15, codigo: '13101', nombre: 'Santiago' },
@@ -311,7 +311,115 @@ async function main() {
     });
   }
 
-  console.log('✅ Seeding completado exitosamente!');
+  // Crear ubicaciones específicas para universidades principales
+  console.log('Creando ubicaciones para universidades...');
+  const ubicacionesUniversidades = [
+    // Santiago Centro - Para universidades principales
+    { id: 100, regionId: 15, provinciaId: 1, comunaId: 1, calle: 'Centro de Santiago', numero: 'S/N' },
+    // Las Condes - Para universidades del sector oriente
+    { id: 101, regionId: 15, provinciaId: 1, comunaId: 14, calle: 'Las Condes', numero: 'S/N' },
+    // Providencia - Para universidades del sector
+    { id: 102, regionId: 15, provinciaId: 1, comunaId: 23, calle: 'Providencia', numero: 'S/N' },
+    // Maipú
+    { id: 103, regionId: 15, provinciaId: 1, comunaId: 19, calle: 'Maipú', numero: 'S/N' },
+    // Ñuñoa
+    { id: 104, regionId: 15, provinciaId: 1, comunaId: 20, calle: 'Ñuñoa', numero: 'S/N' },
+    // Valparaíso
+    { id: 105, regionId: 5, provinciaId: 7, comunaId: 40, calle: 'Centro de Valparaíso', numero: 'S/N' },
+    // Viña del Mar
+    { id: 106, regionId: 5, provinciaId: 7, comunaId: 46, calle: 'Centro de Viña del Mar', numero: 'S/N' },
+    // Concepción
+    { id: 107, regionId: 9, provinciaId: 15, comunaId: 47, calle: 'Centro de Concepción', numero: 'S/N' },
+  ];
+
+  for (const ubicacion of ubicacionesUniversidades) {
+    await prisma.ubicacion.upsert({
+      where: { id: ubicacion.id },
+      update: {},
+      create: ubicacion,
+    });
+  }
+
+  // Seeder para universidades de Chile
+  console.log('Creando listado de universidades de Chile...');
+  const universidadesData = [
+    // Región Metropolitana - Santiago Centro (ID 100)
+    { id: 1, nombreUniversidad: 'Universidad de Chile', ubicacionId: 100 },
+    { id: 2, nombreUniversidad: 'Pontificia Universidad Católica de Chile', ubicacionId: 100 },
+    { id: 3, nombreUniversidad: 'Universidad de Santiago de Chile (USACH)', ubicacionId: 100 },
+    { id: 4, nombreUniversidad: 'Universidad Tecnológica Metropolitana (UTEM)', ubicacionId: 100 },
+    { id: 5, nombreUniversidad: 'Universidad Mayor', ubicacionId: 100 },
+    { id: 6, nombreUniversidad: 'Universidad Central de Chile', ubicacionId: 100 },
+    { id: 7, nombreUniversidad: 'Universidad Diego Portales (UDP)', ubicacionId: 100 },
+    { id: 8, nombreUniversidad: 'Universidad Alberto Hurtado', ubicacionId: 100 },
+    { id: 9, nombreUniversidad: 'Universidad Academia de Humanismo Cristiano', ubicacionId: 100 },
+    { id: 10, nombreUniversidad: 'Universidad Andrés Bello (UNAB)', ubicacionId: 100 },
+    { id: 11, nombreUniversidad: 'Instituto Nacional de Capacitación (INACAP)', ubicacionId: 100 },
+    { id: 12, nombreUniversidad: 'DUOC UC', ubicacionId: 100 },
+    
+    // Las Condes (ID 101)
+    { id: 13, nombreUniversidad: 'Universidad del Desarrollo (UDD)', ubicacionId: 101 },
+    { id: 14, nombreUniversidad: 'Universidad SEK', ubicacionId: 101 },
+    
+    // Providencia (ID 102)
+    { id: 15, nombreUniversidad: 'Universidad Adolfo Ibáñez', ubicacionId: 102 },
+    { id: 16, nombreUniversidad: 'Universidad Finis Terrae', ubicacionId: 102 },
+    { id: 17, nombreUniversidad: 'Universidad de Las Américas (UDLA)', ubicacionId: 102 },
+    { id: 18, nombreUniversidad: 'Universidad San Sebastián', ubicacionId: 102 },
+    
+    // Maipú (ID 103)
+    { id: 19, nombreUniversidad: 'Universidad Católica Silva Henríquez', ubicacionId: 103 },
+    
+    // Ñuñoa (ID 104)
+    { id: 20, nombreUniversidad: 'Universidad Metropolitana de Ciencias de la Educación (UMCE)', ubicacionId: 104 },
+    
+    // Sede Santiago de universidades regionales
+    { id: 21, nombreUniversidad: 'Universidad Arturo Prat (sede Santiago)', ubicacionId: 100 },
+    
+    // Valparaíso (ID 105)
+    { id: 22, nombreUniversidad: 'Pontificia Universidad Católica de Valparaíso (PUCV)', ubicacionId: 105 },
+    { id: 23, nombreUniversidad: 'Universidad de Valparaíso', ubicacionId: 105 },
+    { id: 24, nombreUniversidad: 'Universidad de Playa Ancha', ubicacionId: 105 },
+    { id: 25, nombreUniversidad: 'Universidad Técnica Federico Santa María', ubicacionId: 105 },
+    
+    // Viña del Mar (ID 106)
+    { id: 26, nombreUniversidad: 'Universidad Viña del Mar', ubicacionId: 106 },
+    { id: 27, nombreUniversidad: 'Universidad Adolfo Ibáñez (Viña del Mar)', ubicacionId: 106 },
+    
+    // Concepción (ID 107)
+    { id: 28, nombreUniversidad: 'Universidad de Concepción', ubicacionId: 107 },
+    { id: 29, nombreUniversidad: 'Universidad del Bío-Bío', ubicacionId: 107 },
+    { id: 30, nombreUniversidad: 'Universidad Católica de la Santísima Concepción', ubicacionId: 107 },
+    { id: 31, nombreUniversidad: 'Universidad San Sebastián (Concepción)', ubicacionId: 107 },
+    { id: 32, nombreUniversidad: 'Universidad Andrés Bello (Concepción)', ubicacionId: 107 },
+    { id: 33, nombreUniversidad: 'INACAP Concepción', ubicacionId: 107 },
+    
+    // Universidades regionales principales (usando Santiago como ubicación temporal)
+    { id: 34, nombreUniversidad: 'Universidad de La Serena', ubicacionId: 100 },
+    { id: 35, nombreUniversidad: 'Universidad Católica del Norte', ubicacionId: 100 },
+    { id: 36, nombreUniversidad: 'Universidad de Antofagasta', ubicacionId: 100 },
+    { id: 37, nombreUniversidad: 'Universidad de Atacama', ubicacionId: 100 },
+    { id: 38, nombreUniversidad: 'Universidad de Talca', ubicacionId: 100 },
+    { id: 39, nombreUniversidad: 'Universidad Católica del Maule', ubicacionId: 100 },
+    { id: 40, nombreUniversidad: 'Universidad de La Frontera', ubicacionId: 100 },
+    { id: 41, nombreUniversidad: 'Universidad Católica de Temuco', ubicacionId: 100 },
+    { id: 42, nombreUniversidad: 'Universidad Austral de Chile', ubicacionId: 100 },
+    { id: 43, nombreUniversidad: 'Universidad de Los Lagos', ubicacionId: 100 },
+    { id: 44, nombreUniversidad: 'Universidad de Magallanes', ubicacionId: 100 },
+    
+    // Opción para universidades no listadas
+    { id: 45, nombreUniversidad: 'Otra Universidad (No listada)', ubicacionId: 100 },
+  ];
+
+  for (const universidad of universidadesData) {
+    await prisma.listadoUniversidades.upsert({
+      where: { id: universidad.id },
+      update: {},
+      create: universidad,
+    });
+  }
+
+  console.log('Seeding completado exitosamente!');
 }
 
 main()
@@ -319,7 +427,7 @@ main()
     await prisma.$disconnect();
   })
   .catch(async (e) => {
-    console.error('❌ Error durante el seeding:', e);
+    console.error('Error durante el seeding:', e);
     await prisma.$disconnect();
     process.exit(1);
   });

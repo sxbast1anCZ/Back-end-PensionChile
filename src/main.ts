@@ -51,7 +51,7 @@ async function bootstrap() {
   });
   
   await app.listen(process.env.PORT ?? 3000);
-  console.log('🚀 Aplicación ejecutándose en: http://localhost:3000');
-  console.log('📚 Documentación API en: http://localhost:3000/api-docs');
+  console.log('Aplicación ejecutándose en: http://localhost:3000');
+  console.log('Documentación API en: http://localhost:3000/api-docs');
 }
 bootstrap();

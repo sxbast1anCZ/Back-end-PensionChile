@@ -68,14 +68,16 @@ model EstadoUsuario {
 
 // Tabla específica para universitarios
 model Universitario {
-  id                 Int     @id @default(autoincrement())
-  idUsuario          Int     @unique
-  ciudad             String  @db.VarChar(100)
-  region             String  @db.VarChar(100)
-  universidadEstudio String  @db.VarChar(255)
+  id                    Int                    @id @default(autoincrement())
+  idUsuario             Int                    @unique
+  ciudad                String                 @db.VarChar(100)
+  region                String                 @db.VarChar(100)
+  universidadEstudio    String                 @db.VarChar(255) // Mantenemos por compatibilidad
+  universidadId         Int?                   // FK a listado_universidades (nullable para universidades no listadas)
   
   // Relaciones
-  usuario            Usuario @relation(fields: [idUsuario], references: [idUsuario], onDelete: Cascade)
+  usuario               Usuario                @relation(fields: [idUsuario], references: [idUsuario], onDelete: Cascade)
+  universidad           ListadoUniversidades?  @relation(fields: [universidadId], references: [id])
   
   @@map("universitarios")
 }
@@ -93,7 +95,7 @@ model Propietario {
   @@map("propietarios")
 }
 
-// ===== NUEVAS TABLAS PARA PUBLICACIONES =====
+// NUEVAS TABLAS PARA PUBLICACIONES
 
 // Tabla principal de publicaciones
 model Publicacion {
@@ -195,7 +197,7 @@ model Resena {
   @@map("resenas")
 }
 
-// ===== SISTEMA DE UBICACIONES =====
+// SISTEMA DE UBICACIONES
 
 // Tabla de regiones (15 regiones de Chile)
 model Region {
@@ -269,6 +271,23 @@ model Ubicacion {
   provincia     Provincia     @relation(fields: [provinciaId], references: [id])
   comuna        Comuna        @relation(fields: [comunaId], references: [id])
   publicaciones Publicacion[]
+  universidades ListadoUniversidades[] // Relación con universidades en esta ubicación
   
   @@map("ubicaciones")
+}
+
+// Tabla de listado de universidades de Chile
+model ListadoUniversidades {
+  id               Int           @id @default(autoincrement())
+  nombreUniversidad String        @db.VarChar(255)
+  ubicacionId      Int           // FK a ubicaciones (región/provincia/comuna donde está la universidad)
+  activo           Boolean       @default(true)
+  fechaCreacion    DateTime      @default(now())
+  
+  // Relaciones
+  ubicacion        Ubicacion     @relation(fields: [ubicacionId], references: [id])
+  universitarios   Universitario[] // Estudiantes que estudian en esta universidad
+  
+  @@unique([nombreUniversidad, ubicacionId]) // Una universidad por ubicación específica
+  @@map("listado_universidades")
 }
