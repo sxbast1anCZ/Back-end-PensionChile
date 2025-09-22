@@ -104,7 +104,34 @@ npx prisma studio
 
 ---
 
-## 🔐 API Endpoints
+## � Documentación de API
+
+### Swagger UI
+La documentación interactiva de la API está disponible en:
+```
+http://localhost:3000/api-docs
+```
+
+**Características:**
+- 📖 Documentación automática de todos los endpoints
+- 🧪 Testing integrado - prueba endpoints directamente
+- 🔐 Soporte para autenticación JWT
+- 📋 Esquemas de datos y ejemplos
+- 🏷️ Endpoints organizados por categorías
+
+### Cómo usar Swagger:
+1. Inicia el servidor: `npm run start:dev`
+2. Ve a `http://localhost:3000/api-docs`
+3. Explora los endpoints disponibles
+4. Para endpoints protegidos:
+   - Haz login en `/auth/login`
+   - Copia el `access_token`
+   - Haz clic en "Authorize" y pega el token
+   - Ahora puedes probar endpoints protegidos
+
+---
+
+## �🔐 API Endpoints
 
 ### Autenticación
 - `POST /auth/register` - Registro de usuarios
