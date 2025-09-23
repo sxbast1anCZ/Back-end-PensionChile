@@ -78,7 +78,7 @@ export class RegisterUniversitarioDto {
   contrasena: string;
 
   @ApiProperty({
-    description: 'Nombre de la universidad donde estudia (debe existir en el catálogo)',
+    description: 'Nombre de la universidad donde estudia (se acepta cualquier universidad, aunque no esté en nuestro catálogo)',
     example: 'Universidad de Chile',
     minLength: 3,
     maxLength: 255

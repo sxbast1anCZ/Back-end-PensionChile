@@ -7,8 +7,8 @@ import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { PagosModule } from './pagos/pagos.module';
-// Temporalmente desactivado
-// import { SecurityMiddleware } from './common/security/security.middleware';
+// Middleware de seguridad habilitado
+import { SecurityMiddleware } from './common/security/security.middleware';
 import { SecurityConfig } from './common/security/security.config';
 
 @Module({
@@ -50,9 +50,9 @@ import { SecurityConfig } from './common/security/security.config';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    // Middleware de seguridad temporalmente desactivado para debuggear
-    // consumer
-    //   .apply(SecurityMiddleware)
-    //   .forRoutes('*');
+    // Middleware de seguridad habilitado con control de acceso por niveles
+    consumer
+      .apply(SecurityMiddleware)
+      .forRoutes('*');
   }
 }

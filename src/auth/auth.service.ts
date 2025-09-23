@@ -137,7 +137,7 @@ export class AuthService {
       throw new ConflictException('Ya existe un usuario con ese email o RUT');
     }
 
-    // Buscar la universidad en el catálogo
+    // Buscar la universidad en el catálogo (opcional - para referencia futura)
     const universidad = await this.prisma.listadoUniversidades.findFirst({
       where: {
         nombreUniversidad: {
@@ -148,9 +148,8 @@ export class AuthService {
       }
     });
 
-    if (!universidad) {
-      throw new BadRequestException(`No se encontró la universidad "${userData.nombreUniversidadEstudiante}" en nuestro catálogo`);
-    }
+    // Nota: Permitimos el registro aunque la universidad no esté en el catálogo
+    // Esto es útil para testing y para universidades que aún no hemos catalogado
 
     // Obtener el estado "Activo" por defecto
     const estadoActivo = await this.prisma.estadoUsuario.findFirst({
@@ -193,7 +192,7 @@ export class AuthService {
             ciudad: userData.ciudad,
             region: userData.region,
             universidadEstudio: userData.nombreUniversidadEstudiante,
-            universidadId: universidad.id,
+            universidadId: universidad?.id || null, // Opcional: referencia a universidad catalogada
           },
         });
 
@@ -204,7 +203,7 @@ export class AuthService {
       const { contrasena, ...userWithoutPassword } = result;
       return {
         ...userWithoutPassword,
-        universidad: universidad.nombreUniversidad
+        universidad: universidad?.nombreUniversidad || userData.nombreUniversidadEstudiante
       };
 
     } catch (error) {

@@ -30,7 +30,7 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('login')
-  @Throttle({ auth: { ttl: 900000, limit: 5 } }) // 5 intentos por 15 minutos
+  @Throttle({ auth: { ttl: 900000, limit: 25 } }) // 25 intentos por 15 minutos (aumentado para testing)
   @UseGuards(LocalAuthGuard)
   @ApiOperation({ 
     summary: 'Iniciar sesión',
@@ -61,10 +61,10 @@ export class AuthController {
   }
 
   @Post('register/universitario')
-  @Throttle({ auth: { ttl: 900000, limit: 3 } }) // 3 intentos por 15 minutos
+  @Throttle({ auth: { ttl: 900000, limit: 15 } }) // 15 intentos por 15 minutos (aumentado para testing)
   @ApiOperation({ 
     summary: 'Registrar nuevo estudiante universitario',
-    description: 'Crea una cuenta nueva para un estudiante universitario. Requiere validación de universidad en el catálogo.'
+    description: 'Crea una cuenta nueva para un estudiante universitario. Acepta universidades catalogadas y no catalogadas.'
   })
   @ApiBody({ 
     type: RegisterUniversitarioDto,
@@ -123,7 +123,7 @@ export class AuthController {
   }
 
   @Post('register/propietario')
-  @Throttle({ auth: { ttl: 900000, limit: 3 } }) // 3 intentos por 15 minutos
+  @Throttle({ auth: { ttl: 900000, limit: 15 } }) // 15 intentos por 15 minutos (aumentado para testing)
   @ApiOperation({ 
     summary: 'Registrar nuevo propietario',
     description: 'Crea una cuenta nueva para un propietario de pensiones/habitaciones.'

@@ -11,18 +11,18 @@
 export const SecurityConfig = {
   // Rate Limiting - Previene ataques de fuerza bruta
   rateLimit: {
-    // Límites generales
+    // Límites generales (más permisivos para testing)
     general: {
       windowMs: 15 * 60 * 1000, // 15 minutos
-      max: 100, // Máximo 100 requests por IP cada 15 min
+      max: 200, // Máximo 200 requests por IP cada 15 min (aumentado para testing)
       message: 'Demasiadas solicitudes desde esta IP, intenta de nuevo más tarde.',
     },
     
-    // Límites para autenticación (más estrictos)
+    // Límites para autenticación (más permisivos para testing)
     auth: {
       windowMs: 15 * 60 * 1000, // 15 minutos
-      max: 5, // Máximo 5 intentos de login por IP cada 15 min
-      message: 'Demasiados intentos de inicio de sesión, intenta de nuevo más tarde.',
+      max: 50, // Máximo 50 intentos de auth por IP cada 15 min (aumentado para testing)
+      message: 'Demasiados intentos de autenticación, intenta de nuevo más tarde.',
     },
     
     // Límites para pagos (muy estrictos)
