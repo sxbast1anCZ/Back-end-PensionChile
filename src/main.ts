@@ -108,7 +108,7 @@ Para consultas técnicas, contactar al equipo de desarrollo.
       },
       'access-token',
     )
-    .addServer('http://localhost:3000', 'Servidor de desarrollo')
+    .addServer('http://localhost:4000', 'Servidor de desarrollo')
     .addServer('https://api.pensionchile.cl', 'Servidor de producción')
     .build();
 
@@ -133,11 +133,11 @@ Para consultas técnicas, contactar al equipo de desarrollo.
     `,
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 4000);
   
   logger.log(`
-🚀 Aplicación iniciada en: http://localhost:${process.env.PORT ?? 3000}
-📚 Documentación Swagger: http://localhost:${process.env.PORT ?? 3000}/api
+🚀 Aplicación iniciada en: http://localhost:${process.env.PORT ?? 4000}
+📚 Documentación Swagger: http://localhost:${process.env.PORT ?? 4000}/api
 🗄️  Base de datos PostgreSQL en puerto: 5433
 🛡️  Seguridad: Headers implementados, Rate limiting activo
 🔒 Validación: Sanitización automática de entrada
