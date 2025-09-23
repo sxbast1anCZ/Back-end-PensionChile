@@ -1,6 +1,10 @@
+// =====================================================
+// CONFIGURACIÓN DE PRISMA
+// =====================================================
+
 generator client {
   provider = "prisma-client-js"
-   output   = "../generated/prisma" 
+  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -8,26 +12,62 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// =====================================================
+// ENUMS - Estados y tipos
+// =====================================================
+
+// Estados posibles del pago
+enum EstadoPago {
+  PENDIENTE    // Orden creada, esperando pago
+  PAGADO       // Pago confirmado por Transbank
+  FALLIDO      // Pago rechazado
+  CANCELADO    // Usuario canceló
+  EXPIRADO     // Orden expiró sin pago
+  REEMBOLSADO  // Dinero devuelto
+}
+
+// Métodos de pago disponibles
+enum MetodoPago {
+  TARJETA_CREDITO
+  TARJETA_DEBITO
+  TRANSFERENCIA
+  WEBPAY
+  TRANSBANK
+}
+
+// =====================================================
+// MÓDULO DE USUARIOS - Gestión de cuentas
+// =====================================================
+
 // Tabla principal de usuarios
 model Usuario {
   idUsuario          Int      @id @default(autoincrement())
   rut                String   @unique @db.VarChar(12) // RUT chileno formato XX.XXX.XXX-X
   nombreUsuario      String   @db.VarChar(100)
   primerApellido     String   @db.VarChar(100)
-  segundoApellido    String?  @db.VarChar(100) // Opcional en caso de que no todos tengan segundo apellido
+  segundoApellido    String?  @db.VarChar(100) // Opcional
   telefono           String   @db.VarChar(9)   // Exactamente 9 caracteres
   correoElectronico  String   @unique @db.VarChar(255)
-  contrasena         String   @db.VarChar(255) // Para hash de contraseña
-  tipoUsuario        Int      // Referencia a tabla tipos_usuario
-  estadoUsuario      Int      // Referencia a tabla estados_usuario
+  contrasena         String   @db.VarChar(255) // Para hash bcrypt
+  tipoUsuario        Int      // FK a tipos_usuario
+  estadoUsuario      Int      // FK a estados_usuario
   fechaCreacion      DateTime @default(now())
   fechaActualizacion DateTime @updatedAt
   
-  // Relaciones
+  // Relaciones principales
   tipoUsuarioRel     TipoUsuario   @relation(fields: [tipoUsuario], references: [id])
   estadoUsuarioRel   EstadoUsuario @relation(fields: [estadoUsuario], references: [id])
   universitario      Universitario?
   propietario        Propietario?
+  
+  // Relaciones con funcionalidades
+  publicaciones      Publicacion[]
+  resenas            Resena[]
+  ordenesPago        OrdenPago[]
+  favoritos          Favorito[]
+  reportes           Reporte[]
+  contactosEnviados  Contacto[]    @relation("ContactoUniversitario")
+  contactosRecibidos Contacto[]    @relation("ContactoPropietario")
   
   @@map("usuarios")
 }
@@ -39,7 +79,6 @@ model TipoUsuario {
   descripcion String?   @db.VarChar(255)
   activo      Boolean   @default(true)
   
-  // Relaciones
   usuarios    Usuario[]
   
   @@map("tipos_usuario")
@@ -52,7 +91,6 @@ model EstadoUsuario {
   descripcion String?   @db.VarChar(255)
   activo      Boolean   @default(true)
   
-  // Relaciones
   usuarios    Usuario[]
   
   @@map("estados_usuario")
@@ -60,14 +98,15 @@ model EstadoUsuario {
 
 // Tabla específica para universitarios
 model Universitario {
-  id                 Int     @id @default(autoincrement())
-  idUsuario          Int     @unique
-  ciudad             String  @db.VarChar(100)
-  region             String  @db.VarChar(100)
-  universidadEstudio String  @db.VarChar(255)
+  id                    Int                    @id @default(autoincrement())
+  idUsuario             Int                    @unique
+  ciudad                String                 @db.VarChar(100)
+  region                String                 @db.VarChar(100)
+  universidadEstudio    String                 @db.VarChar(255) // Compatibilidad
+  universidadId         Int?                   // FK opcional a listado_universidades
   
-  // Relaciones
-  usuario            Usuario @relation(fields: [idUsuario], references: [idUsuario], onDelete: Cascade)
+  usuario               Usuario                @relation(fields: [idUsuario], references: [idUsuario], onDelete: Cascade)
+  universidad           ListadoUniversidades?  @relation(fields: [universidadId], references: [id])
   
   @@map("universitarios")
 }
@@ -79,8 +118,355 @@ model Propietario {
   biografiaUsuario      String? @db.Text
   cantidadPublicaciones Int     @default(0)
   
-  // Relaciones
   usuario               Usuario @relation(fields: [idUsuario], references: [idUsuario], onDelete: Cascade)
   
   @@map("propietarios")
+}
+
+// =====================================================
+// MÓDULO DE UBICACIONES - Sistema geográfico de Chile
+// =====================================================
+
+// Tabla de regiones (15 regiones de Chile)
+model Region {
+  id            Int           @id @default(autoincrement())
+  codigo        String        @unique @db.VarChar(5)  // "01", "02", "RM", etc.
+  nombre        String        @unique @db.VarChar(100)
+  activo        Boolean       @default(true)
+  
+  provincias    Provincia[]
+  comunas       Comuna[]      // Relación directa para consultas
+  ubicaciones   Ubicacion[]
+  
+  @@map("regiones")
+}
+
+// Tabla de provincias (56 provincias de Chile)
+model Provincia {
+  id            Int           @id @default(autoincrement())
+  regionId      Int
+  codigo        String        @unique @db.VarChar(10)
+  nombre        String        @db.VarChar(100)
+  activo        Boolean       @default(true)
+  
+  region        Region        @relation(fields: [regionId], references: [id])
+  comunas       Comuna[]
+  ubicaciones   Ubicacion[]
+  
+  @@unique([regionId, nombre])
+  @@map("provincias")
+}
+
+// Tabla de comunas (346 comunas de Chile)
+model Comuna {
+  id            Int           @id @default(autoincrement())
+  provinciaId   Int
+  regionId      Int           // Para consultas directas
+  codigo        String        @unique @db.VarChar(10)
+  nombre        String        @db.VarChar(100)
+  activo        Boolean       @default(true)
+  
+  provincia     Provincia     @relation(fields: [provinciaId], references: [id])
+  region        Region        @relation(fields: [regionId], references: [id])
+  ubicaciones   Ubicacion[]
+  
+  @@unique([provinciaId, nombre])
+  @@map("comunas")
+}
+
+// Tabla de ubicaciones específicas
+model Ubicacion {
+  id            Int           @id @default(autoincrement())
+  regionId      Int           // FK a regiones
+  provinciaId   Int           // FK a provincias  
+  comunaId      Int           // FK a comunas
+  calle         String        @db.VarChar(255) // Dirección específica
+  numero        String?       @db.VarChar(20)  // Número de dirección (opcional)
+  referencias   String?       @db.Text         // Referencias adicionales
+  
+  // Coordenadas para Google Maps
+  latitud       Decimal?      @db.Decimal(10,8)
+  longitud      Decimal?      @db.Decimal(11,8)
+  
+  fechaCreacion DateTime      @default(now())
+  
+  region        Region        @relation(fields: [regionId], references: [id])
+  provincia     Provincia     @relation(fields: [provinciaId], references: [id])
+  comuna        Comuna        @relation(fields: [comunaId], references: [id])
+  publicaciones Publicacion[]
+  universidades ListadoUniversidades[]
+  
+  @@map("ubicaciones")
+}
+
+// Tabla de universidades de Chile
+model ListadoUniversidades {
+  id               Int           @id @default(autoincrement())
+  nombreUniversidad String        @db.VarChar(255)
+  ubicacionId      Int           // FK a ubicaciones
+  activo           Boolean       @default(true)
+  fechaCreacion    DateTime      @default(now())
+  
+  ubicacion        Ubicacion     @relation(fields: [ubicacionId], references: [id])
+  universitarios   Universitario[]
+  
+  @@unique([nombreUniversidad, ubicacionId])
+  @@map("listado_universidades")
+}
+
+// =====================================================
+// MÓDULO DE PUBLICACIONES - Gestión de pensiones
+// =====================================================
+
+// Tabla principal de publicaciones
+model Publicacion {
+  id                   Int                    @id @default(autoincrement())
+  propietarioId        Int                    // FK al usuario propietario
+  titulo               String                 @db.VarChar(255)
+  descripcion          String?                @db.Text
+  precioMensual        Decimal                @db.Decimal(10,2)
+  
+  // Servicios incluidos (RF-003, RF-005)
+  tieneBañoPropio      Boolean?
+  tieneCocinaPropia    Boolean?
+  tieneLavanderia      Boolean?
+  tieneAccesibilidad   Boolean?
+  tieneInternet        Boolean?               // RF-003: Internet incluido
+  incluyeAlmuerzo      Boolean?               // RF-005: Almuerzo incluido
+  
+  // Referencias a catálogos
+  tipoVivienda         Int                    // FK a tipos_vivienda
+  sexosPermitidos      Int?                   // FK a sexos_permitidos (nullable)
+  ubicacionId          Int                    // FK a ubicaciones
+  
+  // Premium y estados
+  esPremium            Boolean                @default(false)
+  estadoPublicacion    Int                    @default(1) // 1: Activo, 2: Eliminado
+  
+  // Fechas
+  fechaCreacion        DateTime               @default(now())
+  fechaActualizacion   DateTime               @updatedAt
+  fechaExpiracion      DateTime?              // Para premium con duración
+  
+  // Relaciones principales
+  propietario          Usuario                @relation(fields: [propietarioId], references: [idUsuario], onDelete: Cascade)
+  tipoViviendaRel      TipoVivienda          @relation(fields: [tipoVivienda], references: [id])
+  sexosPermitidosRel   SexosPermitidos?      @relation(fields: [sexosPermitidos], references: [id])
+  ubicacion            Ubicacion             @relation(fields: [ubicacionId], references: [id])
+  
+  // Relaciones con funcionalidades
+  fotos                FotoPublicacion[]
+  resenas              Resena[]
+  ordenesPago          OrdenPago[]
+  favoritos            Favorito[]            // RF-005: Favoritos
+  reportes             Reporte[]             // RF-009: Reportes
+  contactos            Contacto[]            // RF-012: Contactos
+  
+  @@map("publicaciones")
+}
+
+// Tabla para múltiples fotos por publicación
+model FotoPublicacion {
+  id            Int         @id @default(autoincrement())
+  publicacionId Int
+  urlSupabase   String      @db.VarChar(500) // URL de Supabase Storage
+  nombreArchivo String      @db.VarChar(255)
+  esPortada     Boolean     @default(false)  // Una foto principal
+  orden         Int         @default(0)      // Para ordenar fotos
+  fechaSubida   DateTime    @default(now())
+  
+  publicacion   Publicacion @relation(fields: [publicacionId], references: [id], onDelete: Cascade)
+  
+  @@map("fotos_publicaciones")
+}
+
+// Tabla de reseñas para publicaciones
+model Resena {
+  id            Int         @id @default(autoincrement())
+  publicacionId Int         // FK a la publicación reseñada
+  usuarioId     Int         // FK al usuario que escribió la reseña
+  textoResena   String      @db.Text
+  calificacion  Int         // Calificación del 1 al 10
+  fechaCreacion DateTime    @default(now())
+  fechaActualizacion DateTime @updatedAt
+  
+  publicacion   Publicacion @relation(fields: [publicacionId], references: [id], onDelete: Cascade)
+  usuario       Usuario     @relation(fields: [usuarioId], references: [idUsuario], onDelete: Cascade)
+  
+  @@unique([publicacionId, usuarioId]) // Una reseña por usuario/publicación
+  @@map("resenas")
+}
+
+// =====================================================
+// CATÁLOGOS DE PUBLICACIONES - Tablas de referencia
+// =====================================================
+
+// Tabla de tipos de vivienda (seeder)
+model TipoVivienda {
+  id            Int           @id @default(autoincrement())
+  nombre        String        @unique @db.VarChar(50)
+  descripcion   String?       @db.VarChar(255)
+  activo        Boolean       @default(true)
+  
+  publicaciones Publicacion[]
+  
+  @@map("tipos_vivienda")
+}
+
+// Tabla de sexos permitidos (seeder)
+model SexosPermitidos {
+  id            Int           @id @default(autoincrement())
+  nombre        String        @unique @db.VarChar(50) // "Masculino", "Femenino", "Mixto"
+  descripcion   String?       @db.VarChar(255)
+  activo        Boolean       @default(true)
+  
+  publicaciones Publicacion[]
+  
+  @@map("sexos_permitidos")
+}
+
+// =====================================================
+// MÓDULO DE FUNCIONALIDADES - Favoritos, Reportes, Contactos
+// =====================================================
+
+// RF-005: Tabla de favoritos para universitarios
+model Favorito {
+  id            Int         @id @default(autoincrement())
+  usuarioId     Int         // FK al universitario que guarda el favorito
+  publicacionId Int         // FK a la publicación favorita
+  fechaCreacion DateTime    @default(now())
+  
+  usuario       Usuario     @relation(fields: [usuarioId], references: [idUsuario], onDelete: Cascade)
+  publicacion   Publicacion @relation(fields: [publicacionId], references: [id], onDelete: Cascade)
+  
+  @@unique([usuarioId, publicacionId])
+  @@map("favoritos")
+}
+
+// RF-009: Tabla de reportes para denunciar publicaciones
+model Reporte {
+  id            Int         @id @default(autoincrement())
+  publicacionId Int         // FK a la publicación reportada
+  usuarioId     Int         // FK al usuario que reporta
+  motivo        String      @db.VarChar(255) // Motivo del reporte
+  descripcion   String?     @db.Text // Descripción adicional opcional
+  estado        String      @default("PENDIENTE") @db.VarChar(50) // PENDIENTE, REVISADO, RESUELTO
+  fechaCreacion DateTime    @default(now())
+  fechaResolucion DateTime? // Cuando se resolvió el reporte
+  
+  publicacion   Publicacion @relation(fields: [publicacionId], references: [id], onDelete: Cascade)
+  usuario       Usuario     @relation(fields: [usuarioId], references: [idUsuario], onDelete: Cascade)
+  
+  @@unique([publicacionId, usuarioId])
+  @@map("reportes")
+}
+
+// RF-012: Tabla de contactos de universitarios a propietarios
+model Contacto {
+  id              Int         @id @default(autoincrement())
+  publicacionId   Int         // FK a la publicación de interés
+  universitarioId Int         // FK al universitario que envía el contacto
+  propietarioId   Int         // FK al propietario que recibe el contacto
+  
+  // Datos del contacto
+  nombreCompleto  String      @db.VarChar(255) // Nombre del universitario
+  telefono        String      @db.VarChar(15)  // Teléfono de contacto
+  correo          String      @db.VarChar(255) // Email de contacto
+  mensaje         String      @db.Text         // Mensaje del universitario
+  
+  // Estado del contacto
+  leido           Boolean     @default(false)  // Si el propietario lo leyó
+  respondido      Boolean     @default(false)  // Si el propietario respondió
+  fechaEnvio      DateTime    @default(now())
+  fechaLectura    DateTime?   // Cuando el propietario lo leyó
+  fechaRespuesta  DateTime?   // Cuando el propietario respondió
+  
+  publicacion     Publicacion @relation(fields: [publicacionId], references: [id], onDelete: Cascade)
+  universitario   Usuario     @relation("ContactoUniversitario", fields: [universitarioId], references: [idUsuario], onDelete: Cascade)
+  propietario     Usuario     @relation("ContactoPropietario", fields: [propietarioId], references: [idUsuario], onDelete: Cascade)
+  
+  // Índices para rendimiento
+  @@index([propietarioId, fechaEnvio])
+  @@index([universitarioId, fechaEnvio])
+  @@index([publicacionId, fechaEnvio])
+  @@map("contactos")
+}
+
+// =====================================================
+// MÓDULO DE PAGOS - Sistema Premium y Transbank
+// =====================================================
+
+// Catálogo de planes premium disponibles
+model PlanPremium {
+  id                    Int           @id @default(autoincrement())
+  nombre                String        @db.VarChar(100) // "Premium 7 días"
+  descripcion           String?       @db.Text
+  precio                Decimal       @db.Decimal(10,2)
+  duracionDias          Int           // 7, 30, 90 días
+  activo                Boolean       @default(true)
+  
+  // Beneficios del plan
+  destacarPublicacion   Boolean       @default(true)
+  aparecerPrimero       Boolean       @default(true)
+  insigniaEspecial      Boolean       @default(false)
+  multiplicadorVisitas  Int           @default(1) // Factor de boost en algoritmo
+  
+  fechaCreacion         DateTime      @default(now())
+  fechaActualizacion    DateTime      @updatedAt
+  
+  ordenes               OrdenPago[]
+  
+  @@map("planes_premium")
+}
+
+// Tabla para registrar órdenes de pago
+model OrdenPago {
+  id                    Int                @id @default(autoincrement())
+  usuarioId             Int                // FK al usuario que paga (propietario)
+  publicacionId         Int?               // FK a la publicación que se hace premium
+  planPremiumId         Int                // FK al plan premium seleccionado
+  
+  // Detalles del pago
+  monto                 Decimal            @db.Decimal(10,2)
+  moneda                String             @default("CLP") @db.VarChar(3)
+  concepto              String             @db.VarChar(255) // "Premium 30 días - Publicación ID 123"
+  
+  // IDs de Transbank (no datos sensibles)
+  transactionId         String?            @unique @db.VarChar(100) // ID de Transbank
+  buyOrder              String             @unique @db.VarChar(50)  // Orden única generada
+  sessionId             String?            @db.VarChar(100)
+  
+  // Estados del pago
+  estadoPago            EstadoPago         @default(PENDIENTE)
+  metodoPago            MetodoPago?        // Se actualiza cuando Transbank confirma
+  
+  // Datos de respuesta de Transbank (seguros)
+  codigoAutorizacion    String?            @db.VarChar(50)
+  tipoTarjeta           String?            @db.VarChar(20) // "Visa", "MasterCard" 
+  ultimos4Digitos       String?            @db.VarChar(4)  // Solo últimos 4 dígitos
+  
+  // Auditoría y seguridad
+  ipCliente             String?            @db.VarChar(45) // IPv4/IPv6 del cliente
+  userAgent             String?            @db.VarChar(500) // Para detección de fraude
+  
+  // Fechas
+  fechaCreacion         DateTime           @default(now())
+  fechaPago             DateTime?          // Cuando se completó el pago
+  fechaExpiracion       DateTime?          // Vencimiento del premium
+  fechaVencimientoOrden DateTime?          // Vencimiento de la orden (15 min)
+  
+  // Campos de seguridad adicionales
+  intentosFallidos      Int                @default(0) // Contador de intentos fallidos
+  bloqueado             Boolean            @default(false) // Para bloquear órdenes sospechosas
+  
+  usuario               Usuario            @relation(fields: [usuarioId], references: [idUsuario], onDelete: Cascade)
+  publicacion           Publicacion?       @relation(fields: [publicacionId], references: [id])
+  planPremium           PlanPremium        @relation(fields: [planPremiumId], references: [id])
+  
+  // Índices para rendimiento y seguridad
+  @@index([usuarioId, fechaCreacion])
+  @@index([estadoPago, fechaCreacion])
+  @@index([buyOrder])
+  @@index([ipCliente, fechaCreacion]) // Para detectar patrones sospechosos
+  @@map("ordenes_pago")
 }
