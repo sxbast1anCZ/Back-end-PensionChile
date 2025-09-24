@@ -7,6 +7,7 @@ GUÍA DE INTEGRACIÓN FRONTEND - PENSION CHILE API
 🔧 Framework: NestJS + Prisma + PostgreSQL
 🛡️ Autenticación: JWT (Bearer Token)
 ⏰ Expiración de tokens: 8 horas
+🌍 CORS: Habilitado para http://localhost:3000
 
 =====================================================
 📋 ENDPOINTS DISPONIBLES
@@ -404,13 +405,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 🛡️ SEGURIDAD Y MEJORES PRÁCTICAS
 =====================================================
 
-1. Almacenar tokens de forma segura (considerar httpOnly cookies)
-2. Implementar refresh tokens para sesiones largas
-3. Validar tokens en el servidor antes de operaciones críticas
-4. Usar HTTPS en producción
-5. Implementar rate limiting para evitar ataques de fuerza bruta
-6. Sanitizar inputs del usuario
-7. Manejar errores de forma consistente
+1. CORS está habilitado para http://localhost:3000 (Next.js)
+2. Almacenar tokens de forma segura (considerar httpOnly cookies)
+3. Implementar refresh tokens para sesiones largas
+4. Validar tokens en el servidor antes de operaciones críticas
+5. Usar HTTPS en producción
+6. Implementar rate limiting para evitar ataques de fuerza bruta
+7. Sanitizar inputs del usuario
+8. Manejar errores de forma consistente
 
 =====================================================
 🔄 FLUJO DE AUTENTICACIÓN RECOMENDADO
@@ -431,6 +433,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 - El servidor corre en el puerto 4000 por defecto
 - Next.js usa el puerto 3000 (frontend)
+- CORS está habilitado para localhost:3000
 - Los IDs de tipo de usuario son: 1=Universitario, 2=Propietario
 - Los tokens JWT incluyen: userId, email, tipoUsuarioId, estadoUsuarioId
 - La contraseña nunca se retorna en las respuestas de la API
