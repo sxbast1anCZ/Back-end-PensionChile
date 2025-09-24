@@ -19,14 +19,14 @@ import {
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import { UserService } from 'src/user/user.service';
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { CreateUserDto } from './dto/create-user.dto';
-import { LoginDto } from './dto/login.dto';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+    constructor(private authService: AuthService, private userService: UserService) {}
 
   @Post('login')
   @Throttle({ auth: { ttl: 900000, limit: 5 } }) // 5 intentos por 15 minutos
@@ -91,6 +91,12 @@ export class AuthController {
     } catch (error) {
       throw new UnauthorizedException(error.message);
     }
+
+    @UseGuards(LocalAuthGuard)
+    @Post('/login')
+     login(@Request() req) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+        return this.authService.login(req.user);
   }
 
   @Get('profile')

@@ -1,0 +1,12 @@
+{
+    "editor.wordWrap": "on",
+    "symbols.files.associations": {
+        "*.service.ts": "nest-service",
+        "*.module.ts": "nest",
+        "*.controller.ts": "nest-controller",
+        "*.middleware.ts": "nest-middleware",
+        "*.guard.ts": "nest-guard",
+    },
+    "material-icon-theme.activeIconPack": "nest",
+    "workbench.iconTheme": "material-icon-theme"
+}

@@ -143,4 +143,4 @@ Para consultas técnicas, contactar al equipo de desarrollo.
 🔒 Validación: Sanitización automática de entrada
   `);
 }
-bootstrap();
+void bootstrap();

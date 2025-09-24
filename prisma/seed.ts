@@ -8,34 +8,31 @@ async function main() {
   // Seeder para tipos de usuario
   console.log('Creando tipos de usuario...');
   await prisma.tipoUsuario.upsert({
-    where: { id: 1 },
+    where: { nombre: 'Universitario' },
     update: {},
     create: {
-      id: 1,
       nombre: 'Universitario',
-      descripcion: 'Estudiante universitario buscando arriendo',
+      descripcion: 'Usuario estudiante universitario',
       activo: true,
     },
   });
 
   await prisma.tipoUsuario.upsert({
-    where: { id: 2 },
+    where: { nombre: 'Propietario' },
     update: {},
     create: {
-      id: 2,
       nombre: 'Propietario',
-      descripcion: 'Propietario de inmuebles para arriendo',
+      descripcion: 'Usuario propietario de inmuebles',
       activo: true,
     },
   });
 
   await prisma.tipoUsuario.upsert({
-    where: { id: 3 },
+    where: { nombre: 'Administrador' },
     update: {},
     create: {
-      id: 3,
       nombre: 'Administrador',
-      descripcion: 'Usuario con control total del sistema. Gestiona usuarios, publicaciones de alojamientos y configuraciones avanzadas. Puede aprobar, modificar o eliminar contenidos para asegurar el correcto funcionamiento de la plataforma',
+      descripcion: 'Usuario administrador del sistema',
       activo: true,
     },
   });
@@ -43,10 +40,9 @@ async function main() {
   // Seeder para estados de usuario
   console.log('Creando estados de usuario...');
   await prisma.estadoUsuario.upsert({
-    where: { id: 1 },
+    where: { nombre: 'Activo' },
     update: {},
     create: {
-      id: 1,
       nombre: 'Activo',
       descripcion: 'Usuario activo en el sistema',
       activo: true,
@@ -54,35 +50,32 @@ async function main() {
   });
 
   await prisma.estadoUsuario.upsert({
-    where: { id: 2 },
+    where: { nombre: 'Inactivo' },
     update: {},
     create: {
-      id: 2,
       nombre: 'Inactivo',
-      descripcion: 'Usuario temporalmente inactivo',
+      descripcion: 'Usuario inactivo temporalmente',
       activo: true,
     },
   });
 
   await prisma.estadoUsuario.upsert({
-    where: { id: 3 },
+    where: { nombre: 'Bloqueado' },
     update: {},
     create: {
-      id: 3,
-      nombre: 'Suspendido',
-      descripcion: 'Usuario suspendido por incumplimiento',
+      nombre: 'Bloqueado',
+      descripcion: 'Usuario bloqueado por infracciones',
       activo: true,
     },
   });
 
   await prisma.estadoUsuario.upsert({
-    where: { id: 4 },
+    where: { nombre: 'Eliminado' },
     update: {},
     create: {
-      id: 4,
-      nombre: 'Pendiente',
-      descripcion: 'Usuario pendiente de verificación',
-      activo: true,
+      nombre: 'Eliminado',
+      descripcion: 'Usuario eliminado del sistema',
+      activo: false,
     },
   });
 
@@ -476,4 +469,7 @@ main()
     console.error('Error durante el seeding:', e);
     await prisma.$disconnect();
     process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
   });

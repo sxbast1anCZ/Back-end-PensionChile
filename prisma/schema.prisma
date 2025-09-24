@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  // output   = "../generated/prisma" // Usar ubicación estándar
+  //output   = "../generated/prisma"
 }
 
 datasource db {
@@ -14,20 +14,61 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// =====================================================
+// ENUMS - Estados y tipos
+// =====================================================
+
+// Estados del pago
+enum EstadoPago {
+  PENDIENTE
+  PAGADO
+  FALLIDO
+  CANCELADO
+  EXPIRADO
+  REEMBOLSADO
+
+  @@map("estado_pago")
+}
+
+// Métodos de pago
+enum MetodoPago {
+  TARJETA_CREDITO
+  TARJETA_DEBITO
+  TRANSFERENCIA
+  WEBPAY
+  TRANSBANK
+
+  @@map("metodo_pago")
+}
+
+// Estados del reporte
+enum EstadoReporte {
+  PENDIENTE
+  EN_REVISION
+  RESUELTO
+  RECHAZADO
+
+  @@map("estado_reporte")
+}
+
+// =====================================================
+// MÓDULO DE USUARIOS - Gestión de cuentas
+// =====================================================
+
 // Tabla principal de usuarios
 model Usuario {
-  idUsuario          Int      @id @default(autoincrement())
-  rut                String   @unique @db.VarChar(12) // RUT chileno formato XX.XXX.XXX-X
-  nombreUsuario      String   @db.VarChar(100)
-  primerApellido     String   @db.VarChar(100)
-  segundoApellido    String?  @db.VarChar(100) // Opcional en caso de que no todos tengan segundo apellido
-  telefono           String   @db.VarChar(9)   // Exactamente 9 caracteres
-  correoElectronico  String   @unique @db.VarChar(255)
-  contrasena         String   @db.VarChar(255) // Para hash de contraseña
-  tipoUsuario        Int      // Referencia a tabla tipos_usuario
-  estadoUsuario      Int      // Referencia a tabla estados_usuario
-  fechaCreacion      DateTime @default(now())
-  fechaActualizacion DateTime @updatedAt
+  id                Int      @id @default(autoincrement()) @map("id_usuario")
+  rut               String   @unique @db.VarChar(12) @map("rut") // RUT chileno XX.XXX.XXX-X
+  nombreUsuario     String   @db.VarChar(100) @map("nombre_usuario")
+  primerApellido    String   @db.VarChar(100) @map("primer_apellido")
+  segundoApellido   String?  @db.VarChar(100) @map("segundo_apellido")
+  telefono          String   @db.VarChar(15) @map("telefono") // Aumentado para +56 9 XXXX XXXX
+  correoElectronico String   @unique @db.VarChar(320) @map("correo_electronico") // RFC 5321 estándar
+  contrasena        String   @db.VarChar(255) @map("contrasena") // Para hash bcrypt
+  tipoUsuarioId     Int      @map("tipo_usuario_id")
+  estadoUsuarioId   Int      @map("estado_usuario_id")
+  fechaCreacion     DateTime @default(now()) @map("fecha_creacion")
+  fechaActualizacion DateTime @updatedAt @map("fecha_actualizacion")
   
   // Relaciones
   tipoUsuarioRel     TipoUsuario   @relation(fields: [tipoUsuario], references: [id])
@@ -41,33 +82,33 @@ model Usuario {
   @@map("usuarios")
 }
 
-// Tabla de tipos de usuario (seeder)
+// Catálogo de tipos de usuario
 model TipoUsuario {
   id          Int       @id @default(autoincrement())
   nombre      String    @unique @db.VarChar(50)
   descripcion String?   @db.VarChar(255)
   activo      Boolean   @default(true)
+  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
   
-  // Relaciones
   usuarios    Usuario[]
   
   @@map("tipos_usuario")
 }
 
-// Tabla de estados de usuario (seeder)
+// Catálogo de estados de usuario
 model EstadoUsuario {
   id          Int       @id @default(autoincrement())
   nombre      String    @unique @db.VarChar(50)
   descripcion String?   @db.VarChar(255)
   activo      Boolean   @default(true)
+  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
   
-  // Relaciones
   usuarios    Usuario[]
   
   @@map("estados_usuario")
 }
 
-// Tabla específica para universitarios
+// Perfil específico de universitarios
 model Universitario {
   id                    Int                    @id @default(autoincrement())
   idUsuario             Int                    @unique
@@ -83,15 +124,15 @@ model Universitario {
   @@map("universitarios")
 }
 
-// Tabla específica para propietarios
+// Perfil específico de propietarios
 model Propietario {
-  id                    Int     @id @default(autoincrement())
-  idUsuario             Int     @unique
-  biografiaUsuario      String? @db.Text
-  cantidadPublicaciones Int     @default(0)
+  id                    Int      @id @default(autoincrement())
+  usuarioId             Int      @unique @map("usuario_id")
+  biografia             String?  @db.Text
+  cantidadPublicaciones Int      @default(0) @map("cantidad_publicaciones")
+  fechaCreacion         DateTime @default(now()) @map("fecha_creacion")
   
-  // Relaciones
-  usuario               Usuario @relation(fields: [idUsuario], references: [idUsuario], onDelete: Cascade)
+  usuario               Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   
   @@map("propietarios")
 }
