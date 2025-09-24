@@ -3,6 +3,8 @@ import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { UserService } from 'src/user/user.service';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { CreateUniversitarioDto } from 'src/user/dto/create-universitario.dto';
+import { CreatePropietarioDto } from 'src/user/dto/create-propietario.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
@@ -12,6 +14,16 @@ export class AuthController {
     @Post('/register')
     async register(@Body() body: CreateUserDto){
       return this.userService.createUser(body)
+    }
+
+    @Post('/register/universitario')
+    async registerUniversitario(@Body() body: CreateUniversitarioDto){
+      return this.userService.createUniversitario(body)
+    }
+
+    @Post('/register/propietario')
+    async registerPropietario(@Body() body: CreatePropietarioDto){
+      return this.userService.createPropietario(body)
     }
 
     @UseGuards(LocalAuthGuard)
