@@ -1,47 +1,20 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🏠 Pension Chile - Backend API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Sistema de gestión de pensiones para universitarios en Chile. API REST desarrollada con NestJS, PostgreSQL y Prisma.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 📋 Requisitos Previos
 
-## Description
+- **Node.js** >= 18.0.0
+- **npm** >= 9.0.0
+- **Docker** y **Docker Compose**
+- **Git**
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## 📋 Prerequisitos
-
-Antes de empezar, asegúrate de tener instalado:
-
-- [Node.js](https://nodejs.org/) (v18 o superior)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- [Git](https://git-scm.com/)
-- Editor de código (VS Code recomendado)
-
----
-
-## 🚀 Instalación y Configuración
+## 🚀 Instalación
 
 ### 1. Clonar el repositorio
 ```bash
-git clone https://github.com/sxbast1anCZ/Back-end-PensionChile.git
-cd Back-end-PensionChile
+git clone https://github.com/tu-usuario/pension-back.git
+cd pension-back
 ```
 
 ### 2. Instalar dependencias
@@ -50,149 +23,400 @@ npm install
 ```
 
 ### 3. Configurar variables de entorno
-Crea un archivo `.env` en la raíz del proyecto:
-```env
-# PostgreSQL database connection for Docker container
-DATABASE_URL="postgresql://root:root@localhost:5433/pensionchile_db?schema=public"
-
-# JWT Configuration
-JWT_SECRET="tu-clave-jwt-super-secreta-aqui"
-JWT_EXPIRES_IN="24h"
-```
-
-> **⚠️ Importante:** Genera tu propia clave JWT con:
-> ```bash
-> node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
-> ```
-
-### 4. Levantar la base de datos con Docker
 ```bash
-# Levantar PostgreSQL en Docker
-docker-compose up -d
-
-# Verificar que esté funcionando
-docker-compose ps
+# Crear archivo .env en la raíz del proyecto
+touch .env
 ```
 
-### 5. Configurar la base de datos
+Contenido del archivo `.env`:
+```env
+# Base de datos
+DATABASE_URL="postgresql://root:root@localhost:5432/pension_db?schema=public"
+
+# JWT
+JWT_SECRET="your_jwt_secret_key"
+
+# Puerto del servidor
+PORT=3000
+```
+
+### 4. Iniciar la base de datos con Docker
+```bash
+docker-compose up -d
+```
+
+### 5. Configurar Prisma
 ```bash
 # Generar el cliente de Prisma
 npx prisma generate
 
-# Sincronizar el esquema con la base de datos
-npx prisma db push
+# Ejecutar migraciones
+npx prisma migrate dev --name init
 
-# Poblar la base de datos con datos iniciales
-npx prisma db seed
+# Poblar datos iniciales (tipos y estados de usuario)
+npm run db:seed
 ```
 
-### 6. Iniciar la aplicación
+### 6. Iniciar el servidor
 ```bash
-# Modo desarrollo (con hot-reload)
+# Desarrollo
 npm run start:dev
 
-# Modo producción
+# Producción
 npm run build
 npm run start:prod
 ```
 
----
-
 ## 🗄️ Base de Datos
 
-### Esquema de Usuarios
-- **usuarios** - Tabla principal con datos comunes
-- **tipos_usuario** - Catálogo: Universitario, Propietario, Administrador
-- **estados_usuario** - Catálogo: Activo, Inactivo, Suspendido, Pendiente
-- **universitarios** - Datos específicos de estudiantes
-- **propietarios** - Datos específicos de propietarios
+### Estructura Principal
+- **usuarios** - Información principal de usuarios
+- **tipos_usuario** - Tipos: Universitario, Propietario, Administrador
+- **estados_usuario** - Estados: Activo, Inactivo, Bloqueado, Eliminado
+- **universitarios** - Perfil específico para estudiantes
+- **propietarios** - Perfil específico para propietarios
 
-### Visualizar datos
+### Comandos Útiles de Prisma
 ```bash
-# Abrir Prisma Studio (interfaz web)
+# Ver la base de datos en el navegador
 npx prisma studio
+
+# Resetear la base de datos
+npx prisma migrate reset
+
+# Aplicar cambios del schema
+npx prisma db push
 ```
 
----
-
-## � Documentación de API
-
-### Swagger UI
-La documentación interactiva de la API está disponible en:
-```
-http://localhost:3000/api-docs
-```
-
-**Características:**
-- 📖 Documentación automática de todos los endpoints
-- 🧪 Testing integrado - prueba endpoints directamente
-- 🔐 Soporte para autenticación JWT
-- 📋 Esquemas de datos y ejemplos
-- 🏷️ Endpoints organizados por categorías
-
-### Cómo usar Swagger:
-1. Inicia el servidor: `npm run start:dev`
-2. Ve a `http://localhost:3000/api-docs`
-3. Explora los endpoints disponibles
-4. Para endpoints protegidos:
-   - Haz login en `/auth/login`
-   - Copia el `access_token`
-   - Haz clic en "Authorize" y pega el token
-   - Ahora puedes probar endpoints protegidos
-
----
-
-## �🔐 API Endpoints
+## 🔐 API Endpoints
 
 ### Autenticación
-- `POST /auth/register` - Registro de usuarios
-- `POST /auth/login` - Inicio de sesión
-- `GET /auth/profile` - Perfil del usuario (requiere JWT)
-- `POST /auth/verify` - Verificar token JWT
 
-### Catálogos
-- `GET /auth/tipos-usuario` - Obtener tipos de usuario
-- `GET /auth/estados-usuario` - Obtener estados de usuario
-
-### Ejemplo de registro:
+#### POST `/auth/register`
+Registrar nuevo usuario
 ```json
-POST /auth/register
 {
-  "rut": "12345678-9",
-  "nombreUsuario": "Juan",
-  "primerApellido": "Pérez",
-  "telefono": "987654321",
-  "correoElectronico": "juan@ejemplo.com",
+  "rut": "12345678K",
+  "nombreUsuario": "Juan Carlos",
+  "primerApellido": "González",
+  "segundoApellido": "Pérez",
+  "telefono": "+56987654321",
+  "correoElectronico": "juan.gonzalez@gmail.com",
   "contrasena": "MiPassword123!",
-  "tipoUsuario": 1
+  "tipoUsuarioId": 1,
+  "estadoUsuarioId": 1
 }
 ```
 
----
+**Respuesta exitosa (200):**
+```json
+{
+  "id": 1,
+  "rut": "12345678K",
+  "nombreUsuario": "Juan Carlos",
+  "primerApellido": "González",
+  "segundoApellido": "Pérez",
+  "telefono": "+56987654321",
+  "correoElectronico": "juan.gonzalez@gmail.com",
+  "tipoUsuarioId": 1,
+  "estadoUsuarioId": 1,
+  "fechaCreacion": "2024-09-24T12:30:00.000Z",
+  "fechaActualizacion": "2024-09-24T12:30:00.000Z"
+}
+```
+
+#### POST `/auth/login`
+Iniciar sesión
+```json
+{
+  "correoElectronico": "juan.gonzalez@gmail.com",
+  "contrasena": "MiPassword123!"
+}
+```
+
+**Respuesta exitosa (200):**
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+#### GET `/auth/profile`
+Obtener perfil del usuario autenticado
+
+**Headers requeridos:**
+```
+Authorization: Bearer <token>
+```
+
+**Respuesta exitosa (200):**
+```json
+{
+  "id": 1,
+  "rut": "12345678K",
+  "nombreUsuario": "Juan Carlos",
+  "primerApellido": "González",
+  "segundoApellido": "Pérez",
+  "telefono": "+56987654321",
+  "correoElectronico": "juan.gonzalez@gmail.com",
+  "tipoUsuarioId": 1,
+  "estadoUsuarioId": 1,
+  "fechaCreacion": "2024-09-24T12:30:00.000Z",
+  "fechaActualizacion": "2024-09-24T12:30:00.000Z",
+  "tipoUsuario": {
+    "id": 1,
+    "nombre": "Universitario",
+    "descripcion": "Usuario estudiante universitario",
+    "activo": true
+  },
+  "estadoUsuario": {
+    "id": 1,
+    "nombre": "Activo",
+    "descripcion": "Usuario activo en el sistema",
+    "activo": true
+  }
+}
+```
+
+## 🧪 Testing con Postman
+
+### URL Base
+```
+http://localhost:3000
+```
+
+### Flujo de pruebas
+1. **POST /auth/register** - Crear usuario nuevo
+2. **POST /auth/login** - Obtener token JWT
+3. **GET /auth/profile** - Usar token para obtener información del usuario
+
+### Datos de prueba
+```json
+{
+  "rut": "12345678K",
+  "nombreUsuario": "Usuario Prueba",
+  "primerApellido": "Apellido",
+  "segundoApellido": "Segundo",
+  "telefono": "+56987654321",
+  "correoElectronico": "prueba@test.com",
+  "contrasena": "TestPassword123!",
+  "tipoUsuarioId": 1,
+  "estadoUsuarioId": 1
+}
+```
+
+## ⚙️ Scripts Disponibles
+
+```bash
+# Desarrollo
+npm run start:dev          # Servidor en modo desarrollo
+npm run start:debug        # Servidor con debug
+
+# Construcción
+npm run build              # Compilar aplicación
+npm run start:prod         # Ejecutar en producción
+
+# Base de datos
+npm run db:seed            # Poblar datos iniciales
+
+# Calidad de código
+npm run lint               # Ejecutar ESLint
+npm run format             # Formatear con Prettier
+
+# Testing
+npm run test               # Tests unitarios
+npm run test:e2e           # Tests end-to-end
+npm run test:cov           # Coverage de tests
+```
+
+## 🔧 Configuración de Desarrollo
+
+### Estructura del proyecto
+```
+src/
+├── auth/                  # Módulo de autenticación
+│   ├── dto/              # DTOs de autenticación
+│   ├── guards/           # Guards JWT y Local
+│   ├── strategy/         # Estrategias de Passport
+│   ├── auth.controller.ts
+│   ├── auth.service.ts
+│   ├── auth.module.ts
+│   ├── payload.ts        # Estructura del JWT payload
+│   └── user.ts          # Entidad de usuario
+├── user/                  # Módulo de usuarios
+│   ├── dto/              # DTOs de usuario
+│   ├── user.service.ts
+│   └── user.module.ts
+├── prisma/               # Servicio de Prisma
+│   └── prisma.service.ts
+└── constants/            # Constantes globales
+    └── jwt-key.ts
+```
+
+### Validaciones implementadas
+- **RUT chileno** - Formato `/^[0-9]{7,8}[0-9Kk]$/` (sin puntos ni guión)
+- **Teléfono** - Formato `/^\+569\d{8}$/` (+569XXXXXXXX)
+- **Email** - Formato estándar RFC 5321
+- **Contraseña** - Mínimo 8 caracteres
+- **Nombres/Apellidos** - Mínimo 3 caracteres
+
+### Tecnologías utilizadas
+- **NestJS** - Framework Node.js
+- **Prisma** - ORM para base de datos
+- **PostgreSQL** - Base de datos relacional
+- **Passport JWT** - Autenticación con tokens
+- **bcrypt** - Hash de contraseñas
+- **class-validator** - Validación de DTOs
 
 ## 🐳 Docker
 
+### Servicios incluidos
+- **PostgreSQL 13.5** en puerto 5432
+- **Volumen persistente** para datos
+
 ### Comandos útiles
 ```bash
-# Levantar servicios
+# Iniciar servicios
 docker-compose up -d
 
 # Ver logs
-docker-compose logs
+docker-compose logs -f postgres
 
 # Parar servicios
 docker-compose down
 
-# Reconstruir contenedores
-docker-compose up --build
-
-# Acceder a PostgreSQL
-docker exec -it postgres-pensionchile psql -U root -d pensionchile_db
+# Resetear volúmenes
+docker-compose down -v
 ```
+
+## 📝 Variables de Entorno
+
+| Variable | Descripción | Valor por defecto |
+|----------|-------------|-------------------|
+| `DATABASE_URL` | URL de conexión PostgreSQL | `postgresql://root:root@localhost:5432/pension_db` |
+| `JWT_SECRET` | Clave secreta para JWT | `your_jwt_secret_key` |
+| `PORT` | Puerto del servidor | `3000` |
+
+## 🚨 Troubleshooting
+
+### Error: Foreign key constraint violated
+**Problema:** No existen datos en tablas `tipos_usuario` o `estados_usuario`
+
+**Solución:** Ejecutar el seeder para poblar datos iniciales
+```bash
+npm run db:seed
+```
+
+### Error: Port 5432 already in use
+**Problema:** PostgreSQL ya está corriendo en el sistema
+
+**Solución:** Cambiar puerto en `docker-compose.yml` o detener PostgreSQL local
+```bash
+# Linux
+sudo service postgresql stop
+
+# macOS
+brew services stop postgresql
+
+# Windows
+net stop postgresql-x64-13
+```
+
+### Error: Unauthorized en login
+**Problema:** LocalStrategy no reconoce los campos del DTO
+
+**Solución:** Verificar configuración en `local.strategy.ts`:
+```typescript
+super({
+  usernameField: 'correoElectronico',
+  passwordField: 'contrasena'
+});
+```
+
+### Error: Module not found Prisma
+**Problema:** Cliente de Prisma no generado
+
+**Solución:** Generar cliente de Prisma
+```bash
+npx prisma generate
+```
+
+## 📊 Datos de Seeding
+
+### Tipos de Usuario
+- **ID: 1** - Universitario
+- **ID: 2** - Propietario  
+- **ID: 3** - Administrador
+
+### Estados de Usuario
+- **ID: 1** - Activo
+- **ID: 2** - Inactivo
+- **ID: 3** - Bloqueado
+- **ID: 4** - Eliminado
+
+## 🔐 Seguridad
+
+### Características implementadas
+- **Hash de contraseñas** con bcrypt y salt
+- **JWT tokens** con expiración de 8 horas
+- **Validación de duplicados** para RUT y email
+- **Guards** para proteger endpoints
+- **Exclusión de contraseñas** en respuestas de API
+
+### Buenas prácticas
+- Nunca exponer la clave JWT en el código
+- Usar HTTPS en producción
+- Implementar rate limiting
+- Validar todos los inputs
+- Logs de seguridad
+
+## 🤝 Contribución
+
+1. Fork del proyecto
+2. Crear rama feature (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Crear Pull Request
+
+### Estándares de código
+- Usar ESLint y Prettier
+- Seguir convenciones de NestJS
+- Escribir tests para nuevas funcionalidades
+- Documentar APIs con ejemplos
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT - ver el archivo LICENSE para más detalles.
+
+## 📞 Soporte
+
+Para soporte técnico:
+- Crear un issue en el repositorio
+- Revisar la documentación de troubleshooting
+- Contactar al equipo de desarrollo
 
 ---
 
-## 🧪 Testing
+**¡Tu API de Pension Chile está lista para usar!** 🚀
+
+## 🎯 Próximas funcionalidades
+
+- [ ] Refresh tokens
+- [ ] Roles y permisos avanzados
+- [ ] Validación avanzada de RUT chileno
+- [ ] Rate limiting
+- [ ] Logging y auditoría
+- [ ] Tests automatizados
+- [ ] Documentación con Swagger
+- [ ] Deploy con CI/CD
+  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
+  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+
+## Description
+
+[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+
+## Project setup
 
 ```bash
 $ npm install
