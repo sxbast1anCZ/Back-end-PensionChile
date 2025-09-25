@@ -37,7 +37,7 @@ DATABASE_URL="postgresql://root:root@localhost:5432/pension_db?schema=public"
 JWT_SECRET="your_jwt_secret_key"
 
 # Puerto del servidor
-PORT=3000
+PORT=4000
 ```
 
 ### 4. Iniciar la base de datos con Docker
@@ -182,7 +182,7 @@ Authorization: Bearer <token>
 
 ### URL Base
 ```
-http://localhost:3000
+http://localhost:4000
 ```
 
 ### Flujo de pruebas
@@ -295,7 +295,7 @@ docker-compose down -v
 |----------|-------------|-------------------|
 | `DATABASE_URL` | URL de conexión PostgreSQL | `postgresql://root:root@localhost:5432/pension_db` |
 | `JWT_SECRET` | Clave secreta para JWT | `your_jwt_secret_key` |
-| `PORT` | Puerto del servidor | `3000` |
+| `PORT` | Puerto del servidor | `4000` |
 
 ## 🚨 Troubleshooting
 
