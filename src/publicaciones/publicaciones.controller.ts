@@ -41,13 +41,20 @@ export class PublicacionesController {
     status: 201, 
     description: 'Publicación creada exitosamente',
     example: {
-      id: 1,
-      titulo: 'Habitación cerca de la Universidad',
-      descripcion: 'Habitación cómoda con todos los servicios',
-      precioMensual: 180000,
+      id: 2,
+      propietarioId: 3,
+      titulo: 'Habitación cerca Universidad de Chile',
+      descripcion: 'Habitación cómoda con escritorio...',
+      precioMensual: '180000',
       tieneBanoPropio: true,
       tieneInternet: true,
-      fechaCreacion: '2025-09-25T23:00:00.000Z'
+      tipoViviendaId: 1,
+      sexoPermitidoId: 3,
+      ubicacionId: 1,
+      esPremium: false,
+      estadoPublicacion: 1,
+      fechaCreacion: '2025-09-29T02:31:40.885Z',
+      fechaActualizacion: '2025-09-29T02:31:40.885Z'
     }
   })
   @ApiResponse({ 
@@ -151,7 +158,14 @@ export class PublicacionesController {
   @ApiBody({ type: UpdatePublicacionDto })
   @ApiResponse({ 
     status: 200, 
-    description: 'Publicación actualizada exitosamente' 
+    description: 'Publicación actualizada exitosamente',
+    example: {
+      id: 2,
+      propietarioId: 3,
+      titulo: 'Habitación ACTUALIZADA - Precio rebajado',
+      precioMensual: '160000',
+      fechaActualizacion: '2025-09-29T02:35:00.000Z'
+    }
   })
   @ApiResponse({ 
     status: 401, 

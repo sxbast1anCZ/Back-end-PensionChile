@@ -29,7 +29,7 @@ export class PublicacionEntity {
   fechaActualizacion: Date;
   fechaExpiracion?: Date;
 
-  // Relaciones opcionales (cuando se incluyan)
+  // Relaciones opcionales (solo cuando se soliciten específicamente)
   propietario?: {
     id: number;
     nombreUsuario: string;

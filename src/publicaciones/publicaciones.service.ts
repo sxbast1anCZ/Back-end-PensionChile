@@ -70,33 +70,6 @@ export class PublicacionesService {
           sexoPermitidoId: createPublicacionDto.sexoPermitidoId,
           ubicacionId: createPublicacionDto.ubicacionId,
           estadoPublicacion: 1 // Activa por defecto
-        },
-        include: {
-          propietario: {
-            select: {
-              id: true,
-              nombreUsuario: true,
-              primerApellido: true,
-              segundoApellido: true,
-              correoElectronico: true,
-              telefono: true
-            }
-          },
-          tipoVivienda: true,
-          sexoPermitido: true,
-          ubicacion: {
-            include: {
-              comuna: {
-                include: {
-                  provincia: {
-                    include: {
-                      region: true
-                    }
-                  }
-                }
-              }
-            }
-          }
         }
       });
 
@@ -312,34 +285,7 @@ export class PublicacionesService {
       // Actualizar la publicación
       const publicacionActualizada = await this.prisma.publicacion.update({
         where: { id },
-        data: updatePublicacionDto,
-        include: {
-          propietario: {
-            select: {
-              id: true,
-              nombreUsuario: true,
-              primerApellido: true,
-              segundoApellido: true,
-              correoElectronico: true,
-              telefono: true
-            }
-          },
-          tipoVivienda: true,
-          sexoPermitido: true,
-          ubicacion: {
-            include: {
-              comuna: {
-                include: {
-                  provincia: {
-                    include: {
-                      region: true
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+        data: updatePublicacionDto
       });
 
       return publicacionActualizada as PublicacionEntity;
