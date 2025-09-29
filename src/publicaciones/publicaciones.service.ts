@@ -162,6 +162,11 @@ export class PublicacionesService {
 
   async findOne(id: number): Promise<PublicacionEntity> {
     try {
+      // Validar que el ID sea un número válido
+      if (!id || isNaN(id) || id <= 0) {
+        throw new BadRequestException('Por favor ingrese una publicación que exista');
+      }
+
       const publicacion = await this.prisma.publicacion.findFirst({
         where: {
           id,
@@ -216,13 +221,13 @@ export class PublicacionesService {
       });
 
       if (!publicacion) {
-        throw new NotFoundException('Publicación no encontrada');
+        throw new NotFoundException('La publicación que está intentando buscar no existe');
       }
 
       return publicacion as PublicacionEntity;
 
     } catch (error) {
-      if (error instanceof NotFoundException) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
         throw error;
       }
       if (error instanceof Error) {
@@ -234,13 +239,18 @@ export class PublicacionesService {
 
   async update(id: number, updatePublicacionDto: UpdatePublicacionDto, propietarioId: number): Promise<PublicacionEntity> {
     try {
+      // Validar que el ID sea un número válido
+      if (!id || isNaN(id) || id <= 0) {
+        throw new BadRequestException('Por favor ingrese una publicación que exista');
+      }
+
       // Verificar que la publicación existe y pertenece al propietario
       const publicacionExistente = await this.prisma.publicacion.findFirst({
         where: { id }
       });
 
       if (!publicacionExistente) {
-        throw new NotFoundException('Publicación no encontrada');
+        throw new NotFoundException('La publicación que está intentando actualizar no existe');
       }
 
       if (publicacionExistente.propietarioId !== propietarioId) {
@@ -303,13 +313,18 @@ export class PublicacionesService {
 
   async remove(id: number, propietarioId: number): Promise<{ message: string }> {
     try {
+      // Validar que el ID sea un número válido
+      if (!id || isNaN(id) || id <= 0) {
+        throw new BadRequestException('Por favor ingrese una publicación que exista');
+      }
+
       // Verificar que la publicación existe y pertenece al propietario
       const publicacionExistente = await this.prisma.publicacion.findFirst({
         where: { id }
       });
 
       if (!publicacionExistente) {
-        throw new NotFoundException('Publicación no encontrada');
+        throw new NotFoundException('La publicación que está intentando eliminar no existe');
       }
 
       if (publicacionExistente.propietarioId !== propietarioId) {
@@ -337,7 +352,7 @@ export class PublicacionesService {
       return { message: 'Publicación eliminada exitosamente' };
 
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof ForbiddenException) {
+      if (error instanceof NotFoundException || error instanceof ForbiddenException || error instanceof BadRequestException) {
         throw error;
       }
       if (error instanceof Error) {

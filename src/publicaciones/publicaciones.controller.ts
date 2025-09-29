@@ -22,6 +22,9 @@ import {
 import { PublicacionesService } from './publicaciones.service';
 import { CreatePublicacionDto } from './dto/create-publicacion.dto';
 import { UpdatePublicacionDto } from './dto/update-publicacion.dto';
+import { UpdatePublicacionBodyDto } from './dto/update-publicacion-body.dto';
+import { FindPublicacionDto } from './dto/find-publicacion.dto';
+import { DeletePublicacionDto } from './dto/delete-publicacion.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('publicaciones')
@@ -109,16 +112,12 @@ export class PublicacionesController {
     return this.publicacionesService.findAll();
   }
 
-  @Get(':id')
+  @Post('find')
   @ApiOperation({ 
     summary: 'Obtener una publicación por ID',
-    description: 'Obtiene los detalles completos de una publicación específica'
+    description: 'Obtiene los detalles completos de una publicación específica usando su ID en el body'
   })
-  @ApiParam({
-    name: 'id',
-    description: 'ID de la publicación',
-    example: 1
-  })
+  @ApiBody({ type: FindPublicacionDto })
   @ApiResponse({ 
     status: 200, 
     description: 'Publicación encontrada',
@@ -137,25 +136,24 @@ export class PublicacionesController {
   })
   @ApiResponse({ 
     status: 404, 
-    description: 'Publicación no encontrada' 
+    description: 'La publicación que está intentando buscar no existe' 
   })
-  async findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.publicacionesService.findOne(id);
+  @ApiResponse({ 
+    status: 400, 
+    description: 'Por favor ingrese una publicación que exista' 
+  })
+  async findOne(@Body() findPublicacionDto: FindPublicacionDto) {
+    return this.publicacionesService.findOne(findPublicacionDto.id);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch(':id')
+  @Post('update')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ 
     summary: 'Actualizar publicación',
-    description: 'Permite al propietario actualizar su publicación. Solo el propietario de la publicación puede editarla.'
+    description: 'Permite al propietario actualizar su publicación. Solo el propietario de la publicación puede editarla. El ID se envía en el body junto con los campos a actualizar.'
   })
-  @ApiParam({
-    name: 'id',
-    description: 'ID de la publicación a actualizar',
-    example: 1
-  })
-  @ApiBody({ type: UpdatePublicacionDto })
+  @ApiBody({ type: UpdatePublicacionBodyDto })
   @ApiResponse({ 
     status: 200, 
     description: 'Publicación actualizada exitosamente',
@@ -177,11 +175,14 @@ export class PublicacionesController {
   })
   @ApiResponse({ 
     status: 404, 
-    description: 'Publicación no encontrada' 
+    description: 'La publicación que está intentando actualizar no existe' 
+  })
+  @ApiResponse({ 
+    status: 400, 
+    description: 'Por favor ingrese una publicación que exista' 
   })
   async update(
-    @Param('id', ParseIntPipe) id: number, 
-    @Body() updatePublicacionDto: UpdatePublicacionDto, 
+    @Body() updatePublicacionBodyDto: UpdatePublicacionBodyDto, 
     @Request() req
   ) {
     // Verificar que el usuario es propietario
@@ -190,22 +191,19 @@ export class PublicacionesController {
       throw new ForbiddenException('Solo los propietarios pueden editar publicaciones');
     }
 
+    const { id, ...updateData } = updatePublicacionBodyDto;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-    return this.publicacionesService.update(id, updatePublicacionDto, req.user.userId);
+    return this.publicacionesService.update(id, updateData, req.user.userId);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete(':id')
+  @Post('delete')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ 
     summary: 'Eliminar publicación',
-    description: 'Permite al propietario eliminar (marcar como inactiva) su publicación. Solo el propietario de la publicación puede eliminarla.'
+    description: 'Permite al propietario eliminar (marcar como inactiva) su publicación. Solo el propietario de la publicación puede eliminarla. El ID se envía en el body.'
   })
-  @ApiParam({
-    name: 'id',
-    description: 'ID de la publicación a eliminar',
-    example: 1
-  })
+  @ApiBody({ type: DeletePublicacionDto })
   @ApiResponse({ 
     status: 200, 
     description: 'Publicación eliminada exitosamente',
@@ -223,9 +221,13 @@ export class PublicacionesController {
   })
   @ApiResponse({ 
     status: 404, 
-    description: 'Publicación no encontrada' 
+    description: 'La publicación que está intentando eliminar no existe' 
   })
-  async remove(@Param('id', ParseIntPipe) id: number, @Request() req) {
+  @ApiResponse({ 
+    status: 400, 
+    description: 'Por favor ingrese una publicación que exista' 
+  })
+  async remove(@Body() deletePublicacionDto: DeletePublicacionDto, @Request() req) {
     // Verificar que el usuario es propietario
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (req.user.tipoUsuarioId !== 2) {
@@ -233,7 +235,7 @@ export class PublicacionesController {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-    return this.publicacionesService.remove(id, req.user.userId);
+    return this.publicacionesService.remove(deletePublicacionDto.id, req.user.userId);
   }
 
   @UseGuards(JwtAuthGuard)
