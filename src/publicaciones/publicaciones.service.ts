@@ -19,6 +19,38 @@ export class PublicacionesService {
         throw new ForbiddenException('Solo los propietarios pueden crear publicaciones');
       }
 
+      // Verificar que no existe otra publicación activa con el mismo título del mismo propietario
+      const publicacionConMismoTitulo = await this.prisma.publicacion.findFirst({
+        where: {
+          propietarioId,
+          titulo: createPublicacionDto.titulo,
+          estadoPublicacion: 1 // Solo publicaciones activas
+        }
+      });
+
+      if (publicacionConMismoTitulo) {
+        throw new BadRequestException('Ya tienes una publicación activa con ese título. Si es una propiedad diferente, por favor usa un título único.');
+      }
+
+      // Verificar límite de tiempo entre publicaciones (10 minutos)
+      const hace10Minutos = new Date(Date.now() - 10 * 60 * 1000); // 10 minutos atrás
+      const publicacionReciente = await this.prisma.publicacion.findFirst({
+        where: {
+          propietarioId,
+          fechaCreacion: {
+            gte: hace10Minutos
+          }
+        },
+        orderBy: {
+          fechaCreacion: 'desc'
+        }
+      });
+
+      if (publicacionReciente) {
+        const tiempoRestante = Math.ceil((publicacionReciente.fechaCreacion.getTime() + 10 * 60 * 1000 - Date.now()) / (1000 * 60));
+        throw new BadRequestException(`Debes esperar ${tiempoRestante} minuto(s) antes de crear otra publicación para evitar duplicados accidentales.`);
+      }
+
       // Verificar que el tipo de vivienda existe
       const tipoVivienda = await this.prisma.tipoVivienda.findFirst({
         where: { id: createPublicacionDto.tipoViviendaId, activo: true }

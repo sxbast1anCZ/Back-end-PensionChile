@@ -70,7 +70,33 @@ export class PublicacionesController {
   })
   @ApiResponse({ 
     status: 400, 
-    description: 'Datos de entrada inválidos' 
+    description: 'Datos de entrada inválidos, título duplicado, o límite de tiempo no cumplido',
+    examples: {
+      tituloExistente: {
+        summary: 'Título ya existe',
+        value: {
+          message: 'Ya tienes una publicación activa con ese título. Si es una propiedad diferente, por favor usa un título único.',
+          error: 'Bad Request',
+          statusCode: 400
+        }
+      },
+      limiteTimepo: {
+        summary: 'Límite de tiempo',
+        value: {
+          message: 'Debes esperar 8 minuto(s) antes de crear otra publicación para evitar duplicados accidentales.',
+          error: 'Bad Request',
+          statusCode: 400
+        }
+      },
+      precioInvalido: {
+        summary: 'Precio inválido',
+        value: {
+          message: 'El precio ingresado no es válido',
+          error: 'Bad Request',
+          statusCode: 400
+        }
+      }
+    }
   })
   async create(@Body() createPublicacionDto: CreatePublicacionDto, @Request() req) {
     // Verificar que el usuario es propietario (tipoUsuarioId = 2)
